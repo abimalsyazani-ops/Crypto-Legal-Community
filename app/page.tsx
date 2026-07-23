@@ -60,6 +60,9 @@ const categories = [
   "Analisis",
 ];
 
+const communityWhatsAppUrl =
+  "https://chat.whatsapp.com/BQOBBC4E5z72r7iv0vzYik?s=cl&p=i&mlu=0&ilr=0&amv=1";
+
 const articles: Article[] = [
   {
     id: 1,
@@ -548,7 +551,7 @@ function Header({ dark, setDark, menu, setMenu, query, setQuery }: any) {
         <button className="icon-btn" onClick={() => setDark(!dark)} aria-label="Ganti mode">
           {dark ? "☀" : "☾"}
         </button>
-        <a className="join" href="https://wa.me/6280000000000" target="_blank">Gabung Komunitas</a>
+        <a className="join" href={communityWhatsAppUrl} target="_blank">Gabung Komunitas</a>
         <button className="hamburger" onClick={() => setMenu(!menu)} aria-label="Menu">☰</button>
       </div>
     </header>
@@ -905,7 +908,7 @@ function EventCard({ event }: { event: EventItem }) {
 }
 
 function CommunitySection() {
-  return <section className="community"><h2>Bergabung dengan Komunitas Crypto Legal</h2><p>Dapatkan informasi terbaru, diskusi regulasi, edukasi crypto, webinar, dan kesempatan berkolaborasi bersama komunitas.</p><a href="https://wa.me/6280000000000">Gabung WhatsApp</a><a href="https://instagram.com/">Ikuti Instagram</a></section>;
+  return <section className="community"><h2>Bergabung dengan Komunitas Crypto Legal</h2><p>Dapatkan informasi terbaru, diskusi regulasi, edukasi crypto, webinar, dan kesempatan berkolaborasi bersama komunitas.</p><a href={communityWhatsAppUrl} target="_blank">Gabung WhatsApp</a><a href="https://instagram.com/">Ikuti Instagram</a></section>;
 }
 
 function Footer() {
