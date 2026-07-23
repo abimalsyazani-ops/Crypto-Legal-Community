@@ -75,3 +75,12 @@ supabase/migrations/20260723133000_create_media_storage.sql
 ```
 
 Bucket dibatasi untuk file gambar dan ukuran maksimal 5 MB. Public read aktif, sedangkan upload/update/delete hanya untuk user dengan role staff.
+
+Form artikel di dashboard sudah dapat:
+
+- mengambil kategori dari tabel `categories`,
+- upload gambar ke Storage `media`,
+- menyimpan draft ke tabel `articles`,
+- mempublikasikan artikel ke tabel `articles`.
+
+Fitur edit/hapus artikel, manajemen event, course, penulis, dan statistik lanjutan masih bisa dikembangkan sebagai tahap berikutnya.

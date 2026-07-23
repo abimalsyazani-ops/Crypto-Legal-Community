@@ -11,6 +11,7 @@ import {
   supabaseConfig,
   SupabaseSession,
   uploadToStorage,
+  writeToSupabase,
 } from "../src/lib/supabaseRest";
 
 type Article = {
@@ -227,6 +228,12 @@ type SupabaseEventRow = {
   status: string;
   ticket_price: number | null;
   quota: number | null;
+};
+
+type SupabaseCategoryRow = {
+  id: string;
+  name: string;
+  slug: string;
 };
 
 function formatDate(value?: string | null) {
@@ -604,9 +611,14 @@ function AboutPage() {
 
 function AdminPage({ admin, setAdmin, drafts, saveDraft, dataStatus, remoteArticles, remoteEvents, session, setSession, profile, setProfile }: any) {
   const [title, setTitle] = useState("");
+  const [excerpt, setExcerpt] = useState("");
+  const [body, setBody] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [dbCategories, setDbCategories] = useState<SupabaseCategoryRow[]>([]);
   const [tab, setTab] = useState("Artikel");
   const [email, setEmail] = useState("");
   const [loginStatus, setLoginStatus] = useState("");
+  const [saveStatus, setSaveStatus] = useState("");
   const [uploadedImage, setUploadedImage] = useState("");
   const isStaff = profile && ["admin", "editor", "author"].includes(profile.role);
   const login = async (e: FormEvent) => {
@@ -633,6 +645,46 @@ function AdminPage({ admin, setAdmin, drafts, saveDraft, dataStatus, remoteArtic
       setUploadedImage(error instanceof Error ? error.message : "Upload gagal.");
     }
   };
+  useEffect(() => {
+    if (!supabaseConfig.isConfigured) return;
+    fetchFromSupabase<SupabaseCategoryRow[]>("categories?select=id,name,slug&order=sort_order.asc")
+      .then((rows) => {
+        setDbCategories(rows);
+        setSelectedCategory((current) => current || rows[0]?.id || "");
+      })
+      .catch(() => null);
+  }, []);
+  const saveArticleToSupabase = async (status: "draft" | "published") => {
+    if (!session) throw new Error("Session admin tidak ditemukan.");
+    const slug = title
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9\s-]/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-");
+    const [created] = await writeToSupabase<any[]>("articles", "POST", session, {
+      title,
+      slug: `${slug}-${Date.now()}`,
+      subtitle: excerpt,
+      excerpt,
+      category_id: selectedCategory || null,
+      cover_image_url: uploadedImage || null,
+      cover_image_alt: title,
+      content: {
+        type: "doc",
+        blocks: body
+          .split("\n")
+          .filter(Boolean)
+          .map((text) => ({ type: "paragraph", text })),
+      },
+      status,
+      reading_minutes: Math.max(1, Math.ceil(body.split(/\s+/).filter(Boolean).length / 200)),
+      published_at: status === "published" ? new Date().toISOString() : null,
+      created_by: session ? undefined : null,
+      updated_by: session ? undefined : null,
+    });
+    return created;
+  };
   if (supabaseConfig.isConfigured && !session) return <main className="admin-login"><form onSubmit={login}><img src="/clc-logo.png" alt="CLC" /><h1>Login Admin CLC</h1><input required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="Email admin Supabase" type="email" /><button className="primary">Kirim Link Login</button><p>{loginStatus || "Masuk memakai Supabase Auth. Email harus sudah dibuat di Supabase dan punya role admin/editor/author di tabel profiles."}</p></form></main>;
   if (supabaseConfig.isConfigured && session && !isStaff) return <main className="admin-login"><form><img src="/clc-logo.png" alt="CLC" /><h1>Akses Ditolak</h1><p>Akun ini belum memiliki role admin, editor, atau author di tabel profiles.</p><button type="button" className="primary" onClick={() => { clearSession(); setSession(null); setProfile(null); }}>Keluar</button></form></main>;
   if (!supabaseConfig.isConfigured && !admin) return <main className="admin-login"><form onSubmit={login}><img src="/clc-logo.png" alt="CLC" /><h1>Login Admin CLC</h1><input required placeholder="Email admin" type="email" /><input required placeholder="Password" type="password" /><button className="primary">Masuk Dashboard Demo</button><p>Mode demo: isi env Supabase di Netlify untuk mengaktifkan Auth sungguhan.</p></form></main>;
@@ -652,7 +704,7 @@ function AdminPage({ admin, setAdmin, drafts, saveDraft, dataStatus, remoteArtic
         <h1>Dashboard Admin</h1>
         <p className="admin-status">{dataStatus} {profile ? `Login sebagai ${profile.display_name} (${profile.role}).` : ""}</p>
         <div className="admin-stats"><b>{articles.length + drafts.length} Artikel</b><b>{drafts.length} Draft</b><b>81.620 Pembaca</b><b>2 Event Aktif</b></div>
-        {tab === "Artikel" && <form className="editor" onSubmit={(e) => { e.preventDefault(); saveDraft({ ...articles[0], id: Date.now(), title, slug: title.toLowerCase().replaceAll(" ", "-"), date: "Draft", updated: "Draft", views: 0, image: uploadedImage || articles[0].image }); setTitle(""); }}><h2>Manajemen Artikel</h2><input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Judul artikel" required /><select>{categories.slice(1).map((cat) => <option key={cat}>{cat}</option>)}</select><input type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => handleImageUpload(event.target.files?.[0])} /><small>{uploadedImage || "Upload gambar tersedia setelah login Supabase dan bucket media aktif."}</small><textarea placeholder="Editor: heading, paragraf, bold, italic, link, gambar, kutipan, daftar, dan tabel." /><div className="editor-actions"><button>Publikasikan / Simpan Draft</button><button type="button" onClick={() => alert("Preview artikel tersedia di mode prototype.")}>Preview</button><button type="button" onClick={() => alert("Publikasi terjadwal tersimpan sebagai simulasi.")}>Jadwalkan</button></div></form>}
+        {tab === "Artikel" && <form className="editor" onSubmit={async (e) => { e.preventDefault(); try { setSaveStatus("Menyimpan artikel..."); if (supabaseConfig.isConfigured && session) { await saveArticleToSupabase("published"); setSaveStatus("Artikel berhasil dipublikasikan ke Supabase."); } else { saveDraft({ ...articles[0], id: Date.now(), title, subtitle: excerpt, slug: title.toLowerCase().replaceAll(" ", "-"), date: "Draft", updated: "Draft", views: 0, image: uploadedImage || articles[0].image }); setSaveStatus("Artikel tersimpan sebagai draft lokal demo."); } setTitle(""); setExcerpt(""); setBody(""); } catch (error) { setSaveStatus(error instanceof Error ? error.message : "Gagal menyimpan artikel."); } }}><h2>Manajemen Artikel</h2><input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Judul artikel" required /><input value={excerpt} onChange={(e) => setExcerpt(e.target.value)} placeholder="Ringkasan artikel" required /><select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}>{dbCategories.length ? dbCategories.map((cat) => <option value={cat.id} key={cat.id}>{cat.name}</option>) : categories.slice(1).map((cat) => <option key={cat}>{cat}</option>)}</select><input type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => handleImageUpload(event.target.files?.[0])} /><small>{uploadedImage || "Upload gambar tersedia setelah login Supabase dan bucket media aktif."}</small><textarea value={body} onChange={(e) => setBody(e.target.value)} placeholder="Tulis isi artikel di sini. Setiap baris akan disimpan sebagai paragraf." required /><p className="admin-status">{saveStatus || "Siap menulis artikel ke Supabase jika login admin aktif."}</p><div className="editor-actions"><button>Publikasikan</button><button type="button" onClick={async () => { try { setSaveStatus("Menyimpan draft..."); if (supabaseConfig.isConfigured && session) { await saveArticleToSupabase("draft"); setSaveStatus("Draft berhasil disimpan ke Supabase."); } else { setSaveStatus("Draft tersimpan di mode demo lokal."); } } catch (error) { setSaveStatus(error instanceof Error ? error.message : "Gagal menyimpan draft."); } }}>Simpan Draft</button><button type="button" onClick={() => alert("Preview artikel tersedia di halaman detail setelah artikel published.")}>Preview</button></div></form>}
         {tab === "Event" && <div className="admin-panel"><h2>Manajemen Event</h2><input placeholder="Nama event" /><input type="datetime-local" /><input placeholder="Link pendaftaran" /><select><option>Dibuka</option><option>Selesai</option></select><button className="primary">Simpan Event</button>{events.map((event) => <EventCard key={event.id} event={event} />)}</div>}
         {tab === "Course" && <div className="admin-panel"><h2>Manajemen Course dan Edukasi</h2><input placeholder="Judul materi" /><select><option>Pemula</option><option>Menengah</option><option>Lanjutan</option></select><input placeholder="Link video atau referensi eksternal" /><textarea placeholder="Deskripsi materi edukasi" /><button className="primary">Simpan Materi</button></div>}
         {tab === "Kategori" && <div className="admin-panel"><h2>Manajemen Kategori</h2><input placeholder="Nama kategori baru" /><input type="color" defaultValue="#1262d6" /><button className="primary">Tambah Kategori</button><div className="chips">{categories.slice(1).map((cat) => <button key={cat}>{cat}</button>)}</div></div>}

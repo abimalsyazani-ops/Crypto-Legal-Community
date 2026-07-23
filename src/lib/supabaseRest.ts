@@ -36,6 +36,36 @@ export async function fetchFromSupabase<T>(
   return response.json() as Promise<T>;
 }
 
+export async function writeToSupabase<T>(
+  path: string,
+  method: "POST" | "PATCH" | "DELETE",
+  session: SupabaseSession,
+  body?: unknown
+): Promise<T> {
+  if (!supabaseConfig.isConfigured || !supabaseUrl || !supabaseKey) {
+    throw new Error("Supabase belum dikonfigurasi.");
+  }
+
+  const response = await fetch(`${supabaseUrl}/rest/v1/${path}`, {
+    method,
+    headers: {
+      apikey: supabaseKey,
+      Authorization: `Bearer ${session.accessToken}`,
+      "Content-Type": "application/json",
+      Prefer: "return=representation",
+    },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || `Supabase write gagal: ${response.status}`);
+  }
+
+  if (method === "DELETE") return null as T;
+  return response.json() as Promise<T>;
+}
+
 export type SupabaseSession = {
   accessToken: string;
   refreshToken?: string;
