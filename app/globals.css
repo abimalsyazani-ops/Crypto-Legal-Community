@@ -460,6 +460,38 @@ th, td { border: 1px solid var(--line); padding: 12px; text-align: left; }
   background: var(--surface);
 }
 .admin-panel textarea { min-height: 130px; }
+.admin-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+.admin-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-2);
+}
+.admin-row small {
+  display: block;
+  margin-top: 5px;
+  color: var(--muted);
+}
+.admin-row div {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.admin-row button {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 10px;
+  color: var(--text);
+  background: var(--surface);
+}
 .back-top {
   position: fixed;
   right: 20px;

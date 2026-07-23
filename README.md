@@ -91,5 +91,13 @@ Form artikel di dashboard sudah dapat:
 - upload gambar ke Storage `media`,
 - menyimpan draft ke tabel `articles`,
 - mempublikasikan artikel ke tabel `articles`.
+- mengedit artikel yang sudah ada,
+- menghapus artikel.
 
-Fitur edit/hapus artikel, manajemen event, course, penulis, dan statistik lanjutan masih bisa dikembangkan sebagai tahap berikutnya.
+Dashboard juga sudah mendukung:
+
+- membuat dan menghapus event,
+- membuat dan menghapus materi edukasi/course,
+- statistik real dari tabel artikel, event, dan lessons.
+
+Fitur penulis detail, rich text editor, dan grafik statistik lanjutan masih bisa dikembangkan sebagai tahap berikutnya.

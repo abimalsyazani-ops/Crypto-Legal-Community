@@ -66,6 +66,32 @@ export async function writeToSupabase<T>(
   return response.json() as Promise<T>;
 }
 
+export async function fetchFromSupabaseAsUser<T>(
+  path: string,
+  session: SupabaseSession,
+  options: RequestOptions = {}
+): Promise<T> {
+  if (!supabaseConfig.isConfigured || !supabaseUrl || !supabaseKey) {
+    throw new Error("Supabase belum dikonfigurasi.");
+  }
+
+  const response = await fetch(`${supabaseUrl}/rest/v1/${path}`, {
+    signal: options.signal,
+    headers: {
+      apikey: supabaseKey,
+      Authorization: `Bearer ${session.accessToken}`,
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || `Supabase request gagal: ${response.status}`);
+  }
+
+  return response.json() as Promise<T>;
+}
+
 export type SupabaseSession = {
   accessToken: string;
   refreshToken?: string;
