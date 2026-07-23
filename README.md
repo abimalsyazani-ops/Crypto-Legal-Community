@@ -59,14 +59,14 @@ Frontend otomatis membaca artikel published dan event dari Supabase jika environ
 
 ## Admin Auth dan Storage
 
-Dashboard `/admin` memakai Supabase Auth jika environment variables aktif. Login mendukung email/password Supabase dan magic link.
+Dashboard `/admin` memakai Supabase Auth jika environment variables aktif. Login menggunakan email/password Supabase.
 
 Alurnya:
 
 1. Buat user admin di Supabase Auth.
 2. Tambahkan row di tabel `profiles` dengan `id` sama seperti user Auth tersebut.
 3. Set `role` menjadi `admin`, `editor`, atau `author`.
-4. Login di `/admin` memakai email/password Supabase, atau magic link jika redirect URL sudah diizinkan.
+4. Login di `/admin` memakai email/password Supabase.
 
 Pastikan URL berikut masuk ke daftar redirect Supabase Auth:
 
