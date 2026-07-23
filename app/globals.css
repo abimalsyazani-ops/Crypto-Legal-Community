@@ -104,12 +104,14 @@ nav button:hover { background: rgba(255,255,255,.09); }
 }
 .search input::placeholder { color: #c8d2df; }
 .icon-btn, .hamburger {
-  width: 40px;
+  min-width: 48px;
   height: 40px;
   border: 1px solid rgba(255,255,255,.18);
   border-radius: 8px;
   color: #fff;
   background: rgba(255,255,255,.08);
+  font-size: 12px;
+  font-weight: 800;
 }
 .join, .primary, .secondary, .community a, .event-card a, .editor-actions button, .article-card button, .share button, .share a {
   display: inline-flex;

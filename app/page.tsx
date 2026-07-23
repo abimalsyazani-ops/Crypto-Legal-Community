@@ -516,7 +516,7 @@ export default function Home() {
       </main>
       <Footer />
       <button className="back-top" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
-        â†‘
+        Top
       </button>
     </>
   );
@@ -545,14 +545,14 @@ function Header({ dark, setDark, menu, setMenu, query, setQuery }: any) {
       </nav>
       <div className="header-actions">
         <label className="search">
-          <span>âŒ•</span>
+          <span>Search</span>
           <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Cari artikel" />
         </label>
         <button className="icon-btn" onClick={() => setDark(!dark)} aria-label="Ganti mode">
-          {dark ? "â˜€" : "â˜¾"}
+          {dark ? "Light" : "Dark"}
         </button>
         <a className="join" href={communityWhatsAppUrl} target="_blank">Gabung Komunitas</a>
-        <button className="hamburger" onClick={() => setMenu(!menu)} aria-label="Menu">â˜°</button>
+        <button className="hamburger" onClick={() => setMenu(!menu)} aria-label="Menu">Menu</button>
       </div>
     </header>
   );
@@ -597,7 +597,7 @@ function NewsPage(props: any) {
       <h1>Berita Crypto Legal Community</h1>
       <p>Arsip berita, analisis, dan edukasi hukum ekonomi digital yang dapat difilter berdasarkan kategori dan popularitas.</p>
       <div className="toolbar">
-        <label className="search wide"><span>âŒ•</span><input value={props.query} onChange={(e) => props.setQuery(e.target.value)} placeholder="Cari regulasi, pajak, blockchain..." /></label>
+        <label className="search wide"><span>Search</span><input value={props.query} onChange={(e) => props.setQuery(e.target.value)} placeholder="Cari regulasi, pajak, blockchain..." /></label>
         <select onChange={(e) => props.setCategory(e.target.value)} value={props.category}>{categories.map((cat) => <option key={cat}>{cat}</option>)}</select>
         <select><option>Terbaru</option><option>Terpopuler</option></select>
         <input type="date" />
@@ -851,11 +851,11 @@ function AdminPage({ admin, setAdmin, drafts, saveDraft, dataStatus, remoteArtic
         <p className="admin-status">{dataStatus} {profile ? `Login sebagai ${profile.display_name} (${profile.role}).` : ""}</p>
         <div className="admin-stats"><b>{adminArticles.length} Artikel</b><b>{draftCount} Draft</b><b>{totalViews.toLocaleString("id-ID")} Pembaca</b><b>{adminEvents.length} Event</b></div>
 
-        {tab === "Artikel" && <div className="admin-panel"><form className="editor" onSubmit={async (e) => { e.preventDefault(); try { setSaveStatus("Menyimpan artikel..."); await saveArticle("published"); setSaveStatus("Artikel berhasil dipublikasikan."); } catch (error) { setSaveStatus(error instanceof Error ? error.message : "Gagal menyimpan artikel."); } }}><h2>{editingArticleId ? "Edit Artikel" : "Manajemen Artikel"}</h2><input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Judul artikel" required /><input value={excerpt} onChange={(e) => setExcerpt(e.target.value)} placeholder="Ringkasan artikel" required /><select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}>{dbCategories.map((cat) => <option value={cat.id} key={cat.id}>{cat.name}</option>)}</select><input type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => handleImageUpload(event.target.files?.[0])} /><small>{uploadedImage || "Upload gambar utama artikel"}</small><textarea value={body} onChange={(e) => setBody(e.target.value)} placeholder="Tulis isi artikel di sini." required /><p className="admin-status">{saveStatus || "Siap menyimpan ke Supabase."}</p><div className="editor-actions"><button>Publikasikan</button><button type="button" onClick={async () => { try { await saveArticle("draft"); setSaveStatus("Draft berhasil disimpan."); } catch (error) { setSaveStatus(error instanceof Error ? error.message : "Gagal menyimpan draft."); } }}>Simpan Draft</button>{editingArticleId && <button type="button" onClick={resetArticleForm}>Batal Edit</button>}</div></form><h2>Daftar Artikel</h2><div className="admin-list">{adminArticles.map((article) => <div key={article.id} className="admin-row"><span><b>{article.title}</b><small>{article.status} Â· {article.categories?.name || "Tanpa kategori"} Â· {formatDate(article.published_at || article.created_at)}</small></span><div><button onClick={() => editArticle(article)}>Edit</button><button onClick={() => deleteArticle(article.id)}>Hapus</button></div></div>)}</div></div>}
+        {tab === "Artikel" && <div className="admin-panel"><form className="editor" onSubmit={async (e) => { e.preventDefault(); try { setSaveStatus("Menyimpan artikel..."); await saveArticle("published"); setSaveStatus("Artikel berhasil dipublikasikan."); } catch (error) { setSaveStatus(error instanceof Error ? error.message : "Gagal menyimpan artikel."); } }}><h2>{editingArticleId ? "Edit Artikel" : "Manajemen Artikel"}</h2><input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Judul artikel" required /><input value={excerpt} onChange={(e) => setExcerpt(e.target.value)} placeholder="Ringkasan artikel" required /><select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}>{dbCategories.map((cat) => <option value={cat.id} key={cat.id}>{cat.name}</option>)}</select><input type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => handleImageUpload(event.target.files?.[0])} /><small>{uploadedImage || "Upload gambar utama artikel"}</small><textarea value={body} onChange={(e) => setBody(e.target.value)} placeholder="Tulis isi artikel di sini." required /><p className="admin-status">{saveStatus || "Siap menyimpan ke Supabase."}</p><div className="editor-actions"><button>Publikasikan</button><button type="button" onClick={async () => { try { await saveArticle("draft"); setSaveStatus("Draft berhasil disimpan."); } catch (error) { setSaveStatus(error instanceof Error ? error.message : "Gagal menyimpan draft."); } }}>Simpan Draft</button>{editingArticleId && <button type="button" onClick={resetArticleForm}>Batal Edit</button>}</div></form><h2>Daftar Artikel</h2><div className="admin-list">{adminArticles.map((article) => <div key={article.id} className="admin-row"><span><b>{article.title}</b><small>{article.status} - {article.categories?.name || "Tanpa kategori"} - {formatDate(article.published_at || article.created_at)}</small></span><div><button onClick={() => editArticle(article)}>Edit</button><button onClick={() => deleteArticle(article.id)}>Hapus</button></div></div>)}</div></div>}
 
-        {tab === "Event" && <div className="admin-panel"><h2>Manajemen Event</h2><input value={eventTitle} onChange={(e) => setEventTitle(e.target.value)} placeholder="Nama event" /><input value={eventStartsAt} onChange={(e) => setEventStartsAt(e.target.value)} type="datetime-local" /><input value={eventLocation} onChange={(e) => setEventLocation(e.target.value)} placeholder="Lokasi atau platform" /><input value={eventLink} onChange={(e) => setEventLink(e.target.value)} placeholder="Link pendaftaran" /><button className="primary" onClick={saveEvent}>Simpan Event</button><div className="admin-list">{adminEvents.map((event) => <div key={event.id} className="admin-row"><span><b>{event.title}</b><small>{event.status} Â· {formatDate(event.starts_at)} Â· {event.location || "Online"}</small></span><button onClick={() => deleteEvent(event.id)}>Hapus</button></div>)}</div></div>}
+        {tab === "Event" && <div className="admin-panel"><h2>Manajemen Event</h2><input value={eventTitle} onChange={(e) => setEventTitle(e.target.value)} placeholder="Nama event" /><input value={eventStartsAt} onChange={(e) => setEventStartsAt(e.target.value)} type="datetime-local" /><input value={eventLocation} onChange={(e) => setEventLocation(e.target.value)} placeholder="Lokasi atau platform" /><input value={eventLink} onChange={(e) => setEventLink(e.target.value)} placeholder="Link pendaftaran" /><button className="primary" onClick={saveEvent}>Simpan Event</button><div className="admin-list">{adminEvents.map((event) => <div key={event.id} className="admin-row"><span><b>{event.title}</b><small>{event.status} - {formatDate(event.starts_at)} - {event.location || "Online"}</small></span><button onClick={() => deleteEvent(event.id)}>Hapus</button></div>)}</div></div>}
 
-        {tab === "Course" && <div className="admin-panel"><h2>Manajemen Course dan Edukasi</h2><input value={lessonTitle} onChange={(e) => setLessonTitle(e.target.value)} placeholder="Judul materi" /><select value={lessonLevel} onChange={(e) => setLessonLevel(e.target.value)}><option>Pemula</option><option>Menengah</option><option>Lanjutan</option></select><input value={lessonUrl} onChange={(e) => setLessonUrl(e.target.value)} placeholder="Link video atau referensi eksternal" /><textarea value={lessonSummary} onChange={(e) => setLessonSummary(e.target.value)} placeholder="Deskripsi materi edukasi" /><button className="primary" onClick={saveLesson}>Simpan Materi</button><div className="admin-list">{adminLessons.map((lesson) => <div key={lesson.id} className="admin-row"><span><b>{lesson.title}</b><small>{lesson.level} Â· {lesson.status}</small></span><button onClick={() => deleteLesson(lesson.id)}>Hapus</button></div>)}</div></div>}
+        {tab === "Course" && <div className="admin-panel"><h2>Manajemen Course dan Edukasi</h2><input value={lessonTitle} onChange={(e) => setLessonTitle(e.target.value)} placeholder="Judul materi" /><select value={lessonLevel} onChange={(e) => setLessonLevel(e.target.value)}><option>Pemula</option><option>Menengah</option><option>Lanjutan</option></select><input value={lessonUrl} onChange={(e) => setLessonUrl(e.target.value)} placeholder="Link video atau referensi eksternal" /><textarea value={lessonSummary} onChange={(e) => setLessonSummary(e.target.value)} placeholder="Deskripsi materi edukasi" /><button className="primary" onClick={saveLesson}>Simpan Materi</button><div className="admin-list">{adminLessons.map((lesson) => <div key={lesson.id} className="admin-row"><span><b>{lesson.title}</b><small>{lesson.level} - {lesson.status}</small></span><button onClick={() => deleteLesson(lesson.id)}>Hapus</button></div>)}</div></div>}
 
         {tab === "Kategori" && <div className="admin-panel"><h2>Kategori</h2><div className="chips">{dbCategories.map((cat) => <button key={cat.id}>{cat.name}</button>)}</div></div>}
         {tab === "Penulis" && <div className="admin-panel"><h2>Penulis</h2><p>Data penulis sudah tersedia di schema Supabase. Form detail penulis bisa ditambahkan setelah workflow artikel stabil.</p></div>}
@@ -874,11 +874,11 @@ function ArticleCard({ article, bookmarks = [], toggleBookmark = () => null }: a
 }
 
 function SmallArticle({ article }: { article: Article }) {
-  return <button className="small-article" onClick={() => navigate(`/berita/${article.slug}`)}><img src={article.image} alt={article.title} /><span><b>{article.title}</b><small>{article.category} Â· {article.read}</small></span></button>;
+  return <button className="small-article" onClick={() => navigate(`/berita/${article.slug}`)}><img src={article.image} alt={article.title} /><span><b>{article.title}</b><small>{article.category} - {article.read}</small></span></button>;
 }
 
 function Meta({ article }: { article: Article }) {
-  return <small className="meta">{article.author} Â· {article.date} Â· {article.read}</small>;
+  return <small className="meta">{article.author} - {article.date} - {article.read}</small>;
 }
 
 function CategoryFilters({ category, setCategory }: any) {
@@ -903,8 +903,8 @@ function EventList({ title, items }: any) {
 
 function EventCard({ event }: { event: EventItem }) {
   const registrationUrl = event.registrationUrl || "#";
-  return <article className="event-card"><div className="poster">{event.date.split(" ")[0]}<span>{event.status}</span></div><h3>{event.title}</h3><p>{event.speaker}</p><small>{event.date} Â· {event.time} Â· {event.place}</small><small>{event.price} Â· {event.quota}</small><a href={registrationUrl} target="_blank" aria-disabled={!event.registrationUrl}>{event.registrationUrl ? "Daftar" : "Belum Dibuka"}</a></article>;
-  return <article className="event-card"><div className="poster">{event.date.split(" ")[0]}<span>{event.status}</span></div><h3>{event.title}</h3><p>{event.speaker}</p><small>{event.date} Â· {event.time} Â· {event.place}</small><small>{event.price} Â· {event.quota}</small><a href="https://wa.me/6280000000000" target="_blank">Daftar</a></article>;
+  return <article className="event-card"><div className="poster">{event.date.split(" ")[0]}<span>{event.status}</span></div><h3>{event.title}</h3><p>{event.speaker}</p><small>{event.date} - {event.time} - {event.place}</small><small>{event.price} - {event.quota}</small><a href={registrationUrl} target="_blank" aria-disabled={!event.registrationUrl}>{event.registrationUrl ? "Daftar" : "Belum Dibuka"}</a></article>;
+  return <article className="event-card"><div className="poster">{event.date.split(" ")[0]}<span>{event.status}</span></div><h3>{event.title}</h3><p>{event.speaker}</p><small>{event.date} - {event.time} - {event.place}</small><small>{event.price} - {event.quota}</small><a href="https://wa.me/6280000000000" target="_blank">Daftar</a></article>;
 }
 
 function CommunitySection() {
@@ -912,7 +912,7 @@ function CommunitySection() {
 }
 
 function Footer() {
-  return <footer><div><img src="/clc-logo.png" alt="Logo CLC" /><p>Crypto Legal Community adalah media dan komunitas edukasi hukum, crypto, blockchain, Web3, investasi, dan ekonomi digital.</p></div><div><b>Navigasi</b><button onClick={() => navigate("/berita")}>Berita</button><button onClick={() => navigate("/edukasi")}>Edukasi</button><button onClick={() => navigate("/event")}>Event</button></div><div><b>Kontak</b><span>Email: cryptolegalcommunity@gmail.com</span><span>TikTok: cryptolegalcommunity</span><span>Instagram: cryptolegalcommunity_</span><span>WhatsApp: 085720384852</span></div><p className="disclaimer">Informasi yang disajikan di Crypto Legal Community bertujuan untuk edukasi dan informasi, bukan merupakan nasihat hukum, keuangan, maupun rekomendasi investasi. Disclaimer Â· Kebijakan Privasi Â· Syarat dan Ketentuan</p></footer>;
+  return <footer><div><img src="/clc-logo.png" alt="Logo CLC" /><p>Crypto Legal Community adalah media dan komunitas edukasi hukum, crypto, blockchain, Web3, investasi, dan ekonomi digital.</p></div><div><b>Navigasi</b><button onClick={() => navigate("/berita")}>Berita</button><button onClick={() => navigate("/edukasi")}>Edukasi</button><button onClick={() => navigate("/event")}>Event</button></div><div><b>Kontak</b><span>Email: cryptolegalcommunity@gmail.com</span><span>TikTok: cryptolegalcommunity</span><span>Instagram: cryptolegalcommunity_</span><span>WhatsApp: 085720384852</span></div><p className="disclaimer">Informasi yang disajikan di Crypto Legal Community bertujuan untuk edukasi dan informasi, bukan merupakan nasihat hukum, keuangan, maupun rekomendasi investasi. Disclaimer - Kebijakan Privasi - Syarat dan Ketentuan</p></footer>;
 }
 
 function ProgressBar() {
@@ -924,4 +924,5 @@ function ProgressBar() {
   }, []);
   return <span className="progress-bar" style={{ width: `${width}%` }} />;
 }
+
 
