@@ -56,3 +56,22 @@ supabase/migrations/20260723114811_create_clc_cms_schema.sql
 ```
 
 Frontend otomatis membaca artikel published dan event dari Supabase jika environment variables sudah diisi. Jika database belum berisi konten published, website tetap memakai data demo supaya tampilan tidak kosong.
+
+## Admin Auth dan Storage
+
+Dashboard `/admin` memakai Supabase Auth jika environment variables aktif.
+
+Alurnya:
+
+1. Buat user admin di Supabase Auth.
+2. Tambahkan row di tabel `profiles` dengan `id` sama seperti user Auth tersebut.
+3. Set `role` menjadi `admin`, `editor`, atau `author`.
+4. Login di `/admin` memakai email. Supabase akan mengirim magic link.
+
+Upload gambar admin memakai bucket Storage `media`. Bucket ini dibuat lewat migration:
+
+```text
+supabase/migrations/20260723133000_create_media_storage.sql
+```
+
+Bucket dibatasi untuk file gambar dan ukuran maksimal 5 MB. Public read aktif, sedangkan upload/update/delete hanya untuk user dengan role staff.

@@ -1,7 +1,17 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
-import { fetchFromSupabase, supabaseConfig } from "../src/lib/supabaseRest";
+import {
+  clearSession,
+  fetchFromSupabase,
+  fetchProfile,
+  getSavedSession,
+  readSessionFromHash,
+  requestMagicLink,
+  supabaseConfig,
+  SupabaseSession,
+  uploadToStorage,
+} from "../src/lib/supabaseRest";
 
 type Article = {
   id: number | string;
@@ -300,6 +310,8 @@ export default function Home() {
   const [dataStatus, setDataStatus] = useState(
     supabaseConfig.isConfigured ? "Menghubungkan Supabase..." : "Mode demo: env Supabase belum diisi."
   );
+  const [session, setSession] = useState<SupabaseSession | null>(null);
+  const [profile, setProfile] = useState<{ display_name: string; role: string } | null>(null);
 
   useEffect(() => {
     const sync = () => setPath(window.location.pathname);
@@ -309,6 +321,7 @@ export default function Home() {
     setBookmarks(JSON.parse(localStorage.getItem("clc-bookmarks") || "[]"));
     setAdmin(localStorage.getItem("clc-admin") === "true");
     setDrafts(JSON.parse(localStorage.getItem("clc-drafts") || "[]"));
+    setSession(readSessionFromHash() || getSavedSession());
     return () => window.removeEventListener("popstate", sync);
   }, []);
 
@@ -351,6 +364,17 @@ export default function Home() {
     loadRemoteContent();
     return () => controller.abort();
   }, []);
+
+  useEffect(() => {
+    if (!session) {
+      setProfile(null);
+      return;
+    }
+
+    fetchProfile(session)
+      .then((nextProfile) => setProfile(nextProfile))
+      .catch(() => setProfile(null));
+  }, [session]);
 
   const liveArticles = remoteArticles.length ? remoteArticles : articles;
   const liveEvents = remoteEvents.length ? remoteEvents : events;
@@ -399,6 +423,10 @@ export default function Home() {
         dataStatus={dataStatus}
         remoteArticles={remoteArticles}
         remoteEvents={remoteEvents}
+        session={session}
+        setSession={setSession}
+        profile={profile}
+        setProfile={setProfile}
       />
     );
   }
@@ -574,11 +602,40 @@ function AboutPage() {
   return <section className="page-shell about"><h1>Tentang Crypto Legal Community</h1><p>Crypto Legal Community merupakan media dan komunitas edukasi yang berfokus pada hukum, cryptocurrency, blockchain, Web3, investasi, serta ekonomi digital.</p><div className="stats"><b>200+ anggota</b><b>Ratusan artikel</b><b>Kolaborasi event literasi digital</b></div><h2>Visi</h2><p>Menjadi rujukan nasional untuk literasi hukum, crypto, dan ekonomi digital yang akurat, mudah dipahami, dan bertanggung jawab.</p><h2>Misi</h2><p>Menyediakan artikel edukatif, membuka ruang diskusi, memperkuat keamanan aset digital, dan membangun kolaborasi lintas komunitas.</p><h2>Kontak Kerja Sama</h2><p>Email: halo@cryptolegal.community | WhatsApp: +62 800 0000 0000</p></section>;
 }
 
-function AdminPage({ admin, setAdmin, drafts, saveDraft, dataStatus, remoteArticles, remoteEvents }: any) {
+function AdminPage({ admin, setAdmin, drafts, saveDraft, dataStatus, remoteArticles, remoteEvents, session, setSession, profile, setProfile }: any) {
   const [title, setTitle] = useState("");
   const [tab, setTab] = useState("Artikel");
-  const login = (e: FormEvent) => { e.preventDefault(); setAdmin(true); localStorage.setItem("clc-admin", "true"); };
-  if (!admin) return <main className="admin-login"><form onSubmit={login}><img src="/clc-logo.png" alt="CLC" /><h1>Login Admin CLC</h1><input required placeholder="Email admin" type="email" /><input required placeholder="Password" type="password" /><button className="primary">Masuk Dashboard</button><p>Prototype: gunakan email dan password apa saja.</p></form></main>;
+  const [email, setEmail] = useState("");
+  const [loginStatus, setLoginStatus] = useState("");
+  const [uploadedImage, setUploadedImage] = useState("");
+  const isStaff = profile && ["admin", "editor", "author"].includes(profile.role);
+  const login = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!supabaseConfig.isConfigured) {
+      setAdmin(true);
+      localStorage.setItem("clc-admin", "true");
+      return;
+    }
+    try {
+      await requestMagicLink(email);
+      setLoginStatus("Link login sudah dikirim. Buka email lalu kembali ke /admin.");
+    } catch (error) {
+      setLoginStatus(error instanceof Error ? error.message : "Login gagal.");
+    }
+  };
+  const handleImageUpload = async (file?: File) => {
+    if (!file || !session) return;
+    const safeName = file.name.toLowerCase().replace(/[^a-z0-9.]+/g, "-");
+    const path = `articles/${Date.now()}-${safeName}`;
+    try {
+      setUploadedImage(await uploadToStorage(session, "media", path, file));
+    } catch (error) {
+      setUploadedImage(error instanceof Error ? error.message : "Upload gagal.");
+    }
+  };
+  if (supabaseConfig.isConfigured && !session) return <main className="admin-login"><form onSubmit={login}><img src="/clc-logo.png" alt="CLC" /><h1>Login Admin CLC</h1><input required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="Email admin Supabase" type="email" /><button className="primary">Kirim Link Login</button><p>{loginStatus || "Masuk memakai Supabase Auth. Email harus sudah dibuat di Supabase dan punya role admin/editor/author di tabel profiles."}</p></form></main>;
+  if (supabaseConfig.isConfigured && session && !isStaff) return <main className="admin-login"><form><img src="/clc-logo.png" alt="CLC" /><h1>Akses Ditolak</h1><p>Akun ini belum memiliki role admin, editor, atau author di tabel profiles.</p><button type="button" className="primary" onClick={() => { clearSession(); setSession(null); setProfile(null); }}>Keluar</button></form></main>;
+  if (!supabaseConfig.isConfigured && !admin) return <main className="admin-login"><form onSubmit={login}><img src="/clc-logo.png" alt="CLC" /><h1>Login Admin CLC</h1><input required placeholder="Email admin" type="email" /><input required placeholder="Password" type="password" /><button className="primary">Masuk Dashboard Demo</button><p>Mode demo: isi env Supabase di Netlify untuk mengaktifkan Auth sungguhan.</p></form></main>;
   const tabs = ["Artikel", "Event", "Course", "Kategori", "Penulis", "Statistik"];
   return (
     <main className="admin">
@@ -589,13 +646,13 @@ function AdminPage({ admin, setAdmin, drafts, saveDraft, dataStatus, remoteArtic
             {item}
           </button>
         ))}
-        <button onClick={() => { setAdmin(false); localStorage.removeItem("clc-admin"); }}>Keluar</button>
+        <button onClick={() => { clearSession(); setSession(null); setProfile(null); setAdmin(false); localStorage.removeItem("clc-admin"); }}>Keluar</button>
       </aside>
       <section>
         <h1>Dashboard Admin</h1>
-        <p className="admin-status">{dataStatus}</p>
+        <p className="admin-status">{dataStatus} {profile ? `Login sebagai ${profile.display_name} (${profile.role}).` : ""}</p>
         <div className="admin-stats"><b>{articles.length + drafts.length} Artikel</b><b>{drafts.length} Draft</b><b>81.620 Pembaca</b><b>2 Event Aktif</b></div>
-        {tab === "Artikel" && <form className="editor" onSubmit={(e) => { e.preventDefault(); saveDraft({ ...articles[0], id: Date.now(), title, slug: title.toLowerCase().replaceAll(" ", "-"), date: "Draft", updated: "Draft", views: 0 }); setTitle(""); }}><h2>Manajemen Artikel</h2><input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Judul artikel" required /><select>{categories.slice(1).map((cat) => <option key={cat}>{cat}</option>)}</select><textarea placeholder="Editor: heading, paragraf, bold, italic, link, gambar, kutipan, daftar, dan tabel." /><div className="editor-actions"><button>Publikasikan / Simpan Draft</button><button type="button" onClick={() => alert("Preview artikel tersedia di mode prototype.")}>Preview</button><button type="button" onClick={() => alert("Publikasi terjadwal tersimpan sebagai simulasi.")}>Jadwalkan</button></div></form>}
+        {tab === "Artikel" && <form className="editor" onSubmit={(e) => { e.preventDefault(); saveDraft({ ...articles[0], id: Date.now(), title, slug: title.toLowerCase().replaceAll(" ", "-"), date: "Draft", updated: "Draft", views: 0, image: uploadedImage || articles[0].image }); setTitle(""); }}><h2>Manajemen Artikel</h2><input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Judul artikel" required /><select>{categories.slice(1).map((cat) => <option key={cat}>{cat}</option>)}</select><input type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => handleImageUpload(event.target.files?.[0])} /><small>{uploadedImage || "Upload gambar tersedia setelah login Supabase dan bucket media aktif."}</small><textarea placeholder="Editor: heading, paragraf, bold, italic, link, gambar, kutipan, daftar, dan tabel." /><div className="editor-actions"><button>Publikasikan / Simpan Draft</button><button type="button" onClick={() => alert("Preview artikel tersedia di mode prototype.")}>Preview</button><button type="button" onClick={() => alert("Publikasi terjadwal tersimpan sebagai simulasi.")}>Jadwalkan</button></div></form>}
         {tab === "Event" && <div className="admin-panel"><h2>Manajemen Event</h2><input placeholder="Nama event" /><input type="datetime-local" /><input placeholder="Link pendaftaran" /><select><option>Dibuka</option><option>Selesai</option></select><button className="primary">Simpan Event</button>{events.map((event) => <EventCard key={event.id} event={event} />)}</div>}
         {tab === "Course" && <div className="admin-panel"><h2>Manajemen Course dan Edukasi</h2><input placeholder="Judul materi" /><select><option>Pemula</option><option>Menengah</option><option>Lanjutan</option></select><input placeholder="Link video atau referensi eksternal" /><textarea placeholder="Deskripsi materi edukasi" /><button className="primary">Simpan Materi</button></div>}
         {tab === "Kategori" && <div className="admin-panel"><h2>Manajemen Kategori</h2><input placeholder="Nama kategori baru" /><input type="color" defaultValue="#1262d6" /><button className="primary">Tambah Kategori</button><div className="chips">{categories.slice(1).map((cat) => <button key={cat}>{cat}</button>)}</div></div>}

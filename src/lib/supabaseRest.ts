@@ -35,3 +35,105 @@ export async function fetchFromSupabase<T>(
 
   return response.json() as Promise<T>;
 }
+
+export type SupabaseSession = {
+  accessToken: string;
+  refreshToken?: string;
+  expiresAt?: number;
+  email?: string;
+};
+
+export function readSessionFromHash(): SupabaseSession | null {
+  const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+  const accessToken = hash.get("access_token");
+  if (!accessToken) return null;
+
+  const session = {
+    accessToken,
+    refreshToken: hash.get("refresh_token") || undefined,
+    expiresAt: Number(hash.get("expires_at")) || undefined,
+  };
+
+  window.history.replaceState({}, "", window.location.pathname);
+  saveSession(session);
+  return session;
+}
+
+export function getSavedSession(): SupabaseSession | null {
+  const raw = localStorage.getItem("clc-supabase-session");
+  if (!raw) return null;
+  try {
+    const session = JSON.parse(raw) as SupabaseSession;
+    if (session.expiresAt && session.expiresAt * 1000 < Date.now()) return null;
+    return session;
+  } catch {
+    return null;
+  }
+}
+
+export function saveSession(session: SupabaseSession) {
+  localStorage.setItem("clc-supabase-session", JSON.stringify(session));
+}
+
+export function clearSession() {
+  localStorage.removeItem("clc-supabase-session");
+}
+
+export async function requestMagicLink(email: string) {
+  if (!supabaseConfig.isConfigured || !supabaseUrl || !supabaseKey) {
+    throw new Error("Supabase belum dikonfigurasi.");
+  }
+
+  const response = await fetch(`${supabaseUrl}/auth/v1/otp`, {
+    method: "POST",
+    headers: {
+      apikey: supabaseKey,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      email,
+      create_user: false,
+      options: {
+        email_redirect_to: `${window.location.origin}/admin`,
+      },
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error("Gagal mengirim link login. Pastikan email sudah terdaftar di Supabase Auth.");
+  }
+}
+
+export async function fetchProfile(session: SupabaseSession) {
+  if (!supabaseUrl || !supabaseKey) throw new Error("Supabase belum dikonfigurasi.");
+
+  const response = await fetch(`${supabaseUrl}/rest/v1/profiles?select=id,display_name,role&limit=1`, {
+    headers: {
+      apikey: supabaseKey,
+      Authorization: `Bearer ${session.accessToken}`,
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!response.ok) throw new Error("Profil admin tidak bisa dibaca.");
+  const rows = (await response.json()) as Array<{ id: string; display_name: string; role: string }>;
+  return rows[0] || null;
+}
+
+export async function uploadToStorage(session: SupabaseSession, bucket: string, path: string, file: File) {
+  if (!supabaseUrl || !supabaseKey) throw new Error("Supabase belum dikonfigurasi.");
+
+  const response = await fetch(`${supabaseUrl}/storage/v1/object/${bucket}/${path}`, {
+    method: "POST",
+    headers: {
+      apikey: supabaseKey,
+      Authorization: `Bearer ${session.accessToken}`,
+      "Content-Type": file.type || "application/octet-stream",
+      "x-upsert": "true",
+    },
+    body: file,
+  });
+
+  if (!response.ok) throw new Error("Upload gambar gagal.");
+  return `${supabaseUrl}/storage/v1/object/public/${bucket}/${path}`;
+}
