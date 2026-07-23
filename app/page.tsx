@@ -43,6 +43,7 @@ type EventItem = {
   price: string;
   quota: string;
   speaker: string;
+  registrationUrl?: string;
 };
 
 const categories = [
@@ -175,6 +176,7 @@ const events: EventItem[] = [
     price: "Gratis",
     quota: "300 peserta",
     speaker: "Praktisi hukum aset digital",
+    registrationUrl: "https://wa.me/6280000000000",
   },
   {
     id: 2,
@@ -186,6 +188,7 @@ const events: EventItem[] = [
     price: "Rp49.000",
     quota: "100 peserta",
     speaker: "Tim Edukasi CLC",
+    registrationUrl: "https://wa.me/6280000000000",
   },
   {
     id: 3,
@@ -197,6 +200,7 @@ const events: EventItem[] = [
     price: "Gratis",
     quota: "250 peserta",
     speaker: "Konsultan pajak digital",
+    registrationUrl: "https://wa.me/6280000000000",
   },
 ];
 
@@ -316,6 +320,7 @@ function mapEvent(row: SupabaseEventRow): EventItem {
     price: row.ticket_price ? `Rp${row.ticket_price.toLocaleString("id-ID")}` : "Gratis",
     quota: row.quota ? `${row.quota} peserta` : "Kuota terbatas",
     speaker: row.speaker || row.description || "Tim Crypto Legal Community",
+    registrationUrl: row.registration_url || undefined,
   };
 }
 
@@ -894,6 +899,8 @@ function EventList({ title, items }: any) {
 }
 
 function EventCard({ event }: { event: EventItem }) {
+  const registrationUrl = event.registrationUrl || "#";
+  return <article className="event-card"><div className="poster">{event.date.split(" ")[0]}<span>{event.status}</span></div><h3>{event.title}</h3><p>{event.speaker}</p><small>{event.date} · {event.time} · {event.place}</small><small>{event.price} · {event.quota}</small><a href={registrationUrl} target="_blank" aria-disabled={!event.registrationUrl}>{event.registrationUrl ? "Daftar" : "Belum Dibuka"}</a></article>;
   return <article className="event-card"><div className="poster">{event.date.split(" ")[0]}<span>{event.status}</span></div><h3>{event.title}</h3><p>{event.speaker}</p><small>{event.date} · {event.time} · {event.place}</small><small>{event.price} · {event.quota}</small><a href="https://wa.me/6280000000000" target="_blank">Daftar</a></article>;
 }
 
