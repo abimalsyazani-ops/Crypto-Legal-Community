@@ -75,6 +75,11 @@ export type SupabaseSession = {
 
 export function readSessionFromHash(): SupabaseSession | null {
   const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+  const errorDescription = hash.get("error_description") || hash.get("error");
+  if (errorDescription) {
+    window.history.replaceState({}, "", window.location.pathname);
+    throw new Error(errorDescription);
+  }
   const accessToken = hash.get("access_token");
   if (!accessToken) return null;
 
@@ -135,6 +140,36 @@ export async function requestMagicLink(email: string) {
       detail || "Gagal mengirim link login. Pastikan email sudah terdaftar di Supabase Auth."
     );
   }
+}
+
+export async function signInWithPassword(email: string, password: string): Promise<SupabaseSession> {
+  if (!supabaseConfig.isConfigured || !supabaseUrl || !supabaseKey) {
+    throw new Error("Supabase belum dikonfigurasi.");
+  }
+
+  const response = await fetch(`${supabaseUrl}/auth/v1/token?grant_type=password`, {
+    method: "POST",
+    headers: {
+      apikey: supabaseKey,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ email, password }),
+  });
+
+  if (!response.ok) {
+    const detail = await response.text();
+    throw new Error(detail || "Email atau password Supabase tidak valid.");
+  }
+
+  const data = await response.json();
+  const session: SupabaseSession = {
+    accessToken: data.access_token,
+    refreshToken: data.refresh_token,
+    expiresAt: data.expires_at,
+    email: data.user?.email,
+  };
+  saveSession(session);
+  return session;
 }
 
 export async function fetchProfile(session: SupabaseSession) {

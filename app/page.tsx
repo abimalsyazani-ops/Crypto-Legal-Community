@@ -8,6 +8,7 @@ import {
   getSavedSession,
   readSessionFromHash,
   requestMagicLink,
+  signInWithPassword,
   supabaseConfig,
   SupabaseSession,
   uploadToStorage,
@@ -333,7 +334,12 @@ export default function Home() {
       setAdmin(false);
     }
     setDrafts(JSON.parse(localStorage.getItem("clc-drafts") || "[]"));
-    setSession(readSessionFromHash() || getSavedSession());
+    try {
+      setSession(readSessionFromHash() || getSavedSession());
+    } catch (error) {
+      setSession(null);
+      console.error(error);
+    }
     return () => window.removeEventListener("popstate", sync);
   }, []);
 
@@ -622,6 +628,8 @@ function AdminPage({ admin, setAdmin, drafts, saveDraft, dataStatus, remoteArtic
   const [dbCategories, setDbCategories] = useState<SupabaseCategoryRow[]>([]);
   const [tab, setTab] = useState("Artikel");
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loginMode, setLoginMode] = useState<"password" | "magic">("password");
   const [loginStatus, setLoginStatus] = useState("");
   const [saveStatus, setSaveStatus] = useState("");
   const [uploadedImage, setUploadedImage] = useState("");
@@ -633,8 +641,14 @@ function AdminPage({ admin, setAdmin, drafts, saveDraft, dataStatus, remoteArtic
       return;
     }
     try {
-      await requestMagicLink(email);
-      setLoginStatus("Link login sudah dikirim. Buka email lalu kembali ke /admin.");
+      if (loginMode === "password") {
+        const nextSession = await signInWithPassword(email, password);
+        setSession(nextSession);
+        setLoginStatus("Login berhasil. Memeriksa role admin...");
+      } else {
+        await requestMagicLink(email);
+        setLoginStatus("Link login sudah dikirim. Buka email lalu kembali ke /admin.");
+      }
     } catch (error) {
       setLoginStatus(error instanceof Error ? error.message : "Login gagal.");
     }
@@ -689,7 +703,7 @@ function AdminPage({ admin, setAdmin, drafts, saveDraft, dataStatus, remoteArtic
     });
     return created;
   };
-  if (supabaseConfig.isConfigured && !session) return <main className="admin-login"><form onSubmit={login}><img src="/clc-logo.png" alt="CLC" /><h1>Login Admin CLC</h1><input required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="Email admin Supabase" type="email" /><button className="primary">Kirim Link Login</button><p>{loginStatus || "Masuk memakai Supabase Auth. Email harus sudah dibuat di Supabase dan punya role admin/editor/author di tabel profiles."}</p></form></main>;
+  if (supabaseConfig.isConfigured && !session) return <main className="admin-login"><form onSubmit={login}><img src="/clc-logo.png" alt="CLC" /><h1>Login Admin CLC</h1><div className="editor-actions"><button type="button" className={loginMode === "password" ? "primary" : "secondary"} onClick={() => setLoginMode("password")}>Password</button><button type="button" className={loginMode === "magic" ? "primary" : "secondary"} onClick={() => setLoginMode("magic")}>Magic Link</button></div><input required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="Email admin Supabase" type="email" />{loginMode === "password" && <input required value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Password Supabase" type="password" />}<button className="primary">{loginMode === "password" ? "Masuk Dashboard" : "Kirim Link Login"}</button><p>{loginStatus || "Gunakan akun Supabase Auth yang punya role admin/editor/author di tabel profiles."}</p></form></main>;
   if (supabaseConfig.isConfigured && session && !isStaff) return <main className="admin-login"><form><img src="/clc-logo.png" alt="CLC" /><h1>Akses Ditolak</h1><p>Akun ini belum memiliki role admin, editor, atau author di tabel profiles.</p><button type="button" className="primary" onClick={() => { clearSession(); setSession(null); setProfile(null); }}>Keluar</button></form></main>;
   if (!supabaseConfig.isConfigured) return <main className="admin-login"><form onSubmit={login}><img src="/clc-logo.png" alt="CLC" /><h1>Login Admin CLC</h1><input required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="Email admin Supabase" type="email" /><button className="primary">Masuk Dashboard</button><p>{loginStatus || "Admin terkunci. Isi VITE_SUPABASE_URL dan VITE_SUPABASE_PUBLISHABLE_KEY agar login Supabase aktif."}</p></form></main>;
   const tabs = ["Artikel", "Event", "Course", "Kategori", "Penulis", "Statistik"];
