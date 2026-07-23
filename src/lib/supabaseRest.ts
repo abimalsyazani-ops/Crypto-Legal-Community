@@ -130,7 +130,10 @@ export async function requestMagicLink(email: string) {
   });
 
   if (!response.ok) {
-    throw new Error("Gagal mengirim link login. Pastikan email sudah terdaftar di Supabase Auth.");
+    const detail = await response.text();
+    throw new Error(
+      detail || "Gagal mengirim link login. Pastikan email sudah terdaftar di Supabase Auth."
+    );
   }
 }
 

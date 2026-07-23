@@ -68,6 +68,15 @@ Alurnya:
 3. Set `role` menjadi `admin`, `editor`, atau `author`.
 4. Login di `/admin` memakai email. Supabase akan mengirim magic link.
 
+Pastikan URL berikut masuk ke daftar redirect Supabase Auth:
+
+```text
+http://localhost:5173/admin
+https://domain-netlify-kamu/admin
+```
+
+Di Supabase Dashboard: **Authentication > URL Configuration > Redirect URLs**.
+
 Upload gambar admin memakai bucket Storage `media`. Bucket ini dibuat lewat migration:
 
 ```text
