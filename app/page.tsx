@@ -1,9 +1,10 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
+import { fetchFromSupabase, supabaseConfig } from "../src/lib/supabaseRest";
 
 type Article = {
-  id: number;
+  id: number | string;
   slug: string;
   title: string;
   subtitle: string;
@@ -21,7 +22,7 @@ type Article = {
 };
 
 type EventItem = {
-  id: number;
+  id: number | string;
   title: string;
   date: string;
   time: string;
@@ -187,6 +188,88 @@ const events: EventItem[] = [
   },
 ];
 
+type SupabaseArticleRow = {
+  id: string;
+  title: string;
+  slug: string;
+  subtitle: string | null;
+  excerpt: string | null;
+  cover_image_url: string | null;
+  cover_image_alt: string | null;
+  reading_minutes: number | null;
+  view_count: number | null;
+  published_at: string | null;
+  updated_at: string | null;
+  categories: { name: string } | null;
+  authors: { name: string } | null;
+};
+
+type SupabaseEventRow = {
+  id: string;
+  title: string;
+  slug: string;
+  description: string | null;
+  poster_url: string | null;
+  speaker: string | null;
+  starts_at: string;
+  location: string | null;
+  registration_url: string | null;
+  status: string;
+  ticket_price: number | null;
+  quota: number | null;
+};
+
+function formatDate(value?: string | null) {
+  if (!value) return "Belum dipublikasikan";
+  return new Intl.DateTimeFormat("id-ID", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(new Date(value));
+}
+
+function formatTime(value?: string | null) {
+  if (!value) return "-";
+  return new Intl.DateTimeFormat("id-ID", {
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZoneName: "short",
+  }).format(new Date(value));
+}
+
+function mapArticle(row: SupabaseArticleRow): Article {
+  return {
+    id: row.id,
+    slug: row.slug,
+    title: row.title,
+    subtitle: row.subtitle || row.excerpt || "Artikel Crypto Legal Community.",
+    category: row.categories?.name || "Berita",
+    author: row.authors?.name || "Redaksi CLC",
+    date: formatDate(row.published_at),
+    updated: formatDate(row.updated_at),
+    read: `${row.reading_minutes || 3} menit`,
+    views: row.view_count || 0,
+    image:
+      row.cover_image_url ||
+      "https://images.unsplash.com/photo-1642104704074-907c0698cbd9?auto=format&fit=crop&w=1000&q=80",
+    tags: [],
+  };
+}
+
+function mapEvent(row: SupabaseEventRow): EventItem {
+  return {
+    id: row.id,
+    title: row.title,
+    date: formatDate(row.starts_at),
+    time: formatTime(row.starts_at),
+    place: row.location || "Online",
+    status: row.status === "completed" ? "Selesai" : "Dibuka",
+    price: row.ticket_price ? `Rp${row.ticket_price.toLocaleString("id-ID")}` : "Gratis",
+    quota: row.quota ? `${row.quota} peserta` : "Kuota terbatas",
+    speaker: row.speaker || row.description || "Tim Crypto Legal Community",
+  };
+}
+
 function navigate(path: string) {
   window.history.pushState({}, "", path);
   window.dispatchEvent(new PopStateEvent("popstate"));
@@ -212,6 +295,11 @@ export default function Home() {
   const [bookmarks, setBookmarks] = useState<string[]>([]);
   const [admin, setAdmin] = useState(false);
   const [drafts, setDrafts] = useState<Article[]>([]);
+  const [remoteArticles, setRemoteArticles] = useState<Article[]>([]);
+  const [remoteEvents, setRemoteEvents] = useState<EventItem[]>([]);
+  const [dataStatus, setDataStatus] = useState(
+    supabaseConfig.isConfigured ? "Menghubungkan Supabase..." : "Mode demo: env Supabase belum diisi."
+  );
 
   useEffect(() => {
     const sync = () => setPath(window.location.pathname);
@@ -229,7 +317,44 @@ export default function Home() {
     localStorage.setItem("clc-theme", dark ? "dark" : "light");
   }, [dark]);
 
-  const allArticles = [...drafts, ...articles];
+  useEffect(() => {
+    if (!supabaseConfig.isConfigured) return;
+
+    const controller = new AbortController();
+    const loadRemoteContent = async () => {
+      try {
+        const [articleRows, eventRows] = await Promise.all([
+          fetchFromSupabase<SupabaseArticleRow[]>(
+            "articles?select=id,title,slug,subtitle,excerpt,cover_image_url,cover_image_alt,reading_minutes,view_count,published_at,updated_at,categories(name),authors(name)&status=eq.published&order=published_at.desc",
+            { signal: controller.signal }
+          ),
+          fetchFromSupabase<SupabaseEventRow[]>(
+            "events?select=id,title,slug,description,poster_url,speaker,starts_at,location,registration_url,status,ticket_price,quota&status=in.(upcoming,open,closed,completed)&order=starts_at.asc",
+            { signal: controller.signal }
+          ),
+        ]);
+
+        setRemoteArticles(articleRows.map(mapArticle));
+        setRemoteEvents(eventRows.map(mapEvent));
+        setDataStatus(
+          articleRows.length || eventRows.length
+            ? "Terhubung ke Supabase."
+            : "Terhubung ke Supabase, tetapi belum ada konten published."
+        );
+      } catch {
+        if (!controller.signal.aborted) {
+          setDataStatus("Supabase belum bisa dibaca. Situs memakai data demo.");
+        }
+      }
+    };
+
+    loadRemoteContent();
+    return () => controller.abort();
+  }, []);
+
+  const liveArticles = remoteArticles.length ? remoteArticles : articles;
+  const liveEvents = remoteEvents.length ? remoteEvents : events;
+  const allArticles = [...drafts, ...liveArticles];
   const filtered = allArticles.filter((article) => {
     const matchCategory = category === "Semua" || article.category === category;
     const haystack = `${article.title} ${article.subtitle} ${article.category}`.toLowerCase();
@@ -260,6 +385,8 @@ export default function Home() {
     filtered,
     bookmarks,
     toggleBookmark,
+    articles: liveArticles,
+    events: liveEvents,
   };
 
   if (path === "/admin") {
@@ -269,6 +396,9 @@ export default function Home() {
         setAdmin={setAdmin}
         drafts={drafts}
         saveDraft={saveDraft}
+        dataStatus={dataStatus}
+        remoteArticles={remoteArticles}
+        remoteEvents={remoteEvents}
       />
     );
   }
@@ -296,7 +426,7 @@ export default function Home() {
           />
         )}
         {path === "/edukasi" && <EducationPage />}
-        {path === "/event" && <EventPage />}
+        {path === "/event" && <EventPage events={liveEvents} />}
         {path === "/tentang-clc" && <AboutPage />}
       </main>
       <Footer />
@@ -344,7 +474,8 @@ function Header({ dark, setDark, menu, setMenu, query, setQuery }: any) {
 }
 
 function HomePage(props: any) {
-  const featured = articles[0];
+  const homeArticles = props.articles as Article[];
+  const featured = homeArticles[0] || articles[0];
   return (
     <>
       <section className="ticker"><b>Breaking:</b> CLC membuka kelas literasi aset digital dan perlindungan konsumen bulan Agustus.</section>
@@ -361,14 +492,14 @@ function HomePage(props: any) {
         </article>
         <aside className="choice-list">
           <h2>Berita Pilihan</h2>
-          {articles.slice(1, 4).map((article) => <SmallArticle key={article.slug} article={article} />)}
+          {homeArticles.slice(1, 4).map((article) => <SmallArticle key={article.slug} article={article} />)}
         </aside>
       </section>
       <ArticleSection title="Berita Terbaru" articles={props.filtered.slice(0, 6)} {...props} />
       <PopularSection />
-      <ArticleSection title="Fokus Regulasi dan Hukum" articles={articles.filter((a) => ["Regulasi", "Hukum", "Pajak"].includes(a.category))} {...props} />
+      <ArticleSection title="Fokus Regulasi dan Hukum" articles={homeArticles.filter((a) => ["Regulasi", "Hukum", "Pajak"].includes(a.category))} {...props} />
       <EducationStrip />
-      <EventPreview />
+      <EventPreview events={props.events} />
       <CommunitySection />
     </>
   );
@@ -435,15 +566,15 @@ function EducationPage() {
   return <section className="page-shell"><h1>Jalur Edukasi Crypto</h1><p>Materi dipisahkan untuk Pemula, Menengah, dan Lanjutan agar pembaca bisa belajar bertahap.</p><div className="level-grid">{["Pemula", "Menengah", "Lanjutan"].map((level, i) => <div className="level" key={level}><h2>{level}</h2><div className="progress"><span style={{ width: `${(i + 1) * 28}%` }} /></div>{steps.slice(i * 3, i * 3 + 4).map((step, idx) => <button key={step}>{idx + 1}. {step}</button>)}</div>)}</div><EducationStrip /></section>;
 }
 
-function EventPage() {
-  return <section className="page-shell"><h1>Event dan Course CLC</h1><div className="event-columns"><EventList title="Event Mendatang" items={events.filter((e) => e.status === "Dibuka")} /><EventList title="Event Selesai" items={events.filter((e) => e.status === "Selesai")} /></div></section>;
+function EventPage({ events: items = events }: { events?: EventItem[] }) {
+  return <section className="page-shell"><h1>Event dan Course CLC</h1><div className="event-columns"><EventList title="Event Mendatang" items={items.filter((e) => e.status === "Dibuka")} /><EventList title="Event Selesai" items={items.filter((e) => e.status === "Selesai")} /></div></section>;
 }
 
 function AboutPage() {
   return <section className="page-shell about"><h1>Tentang Crypto Legal Community</h1><p>Crypto Legal Community merupakan media dan komunitas edukasi yang berfokus pada hukum, cryptocurrency, blockchain, Web3, investasi, serta ekonomi digital.</p><div className="stats"><b>200+ anggota</b><b>Ratusan artikel</b><b>Kolaborasi event literasi digital</b></div><h2>Visi</h2><p>Menjadi rujukan nasional untuk literasi hukum, crypto, dan ekonomi digital yang akurat, mudah dipahami, dan bertanggung jawab.</p><h2>Misi</h2><p>Menyediakan artikel edukatif, membuka ruang diskusi, memperkuat keamanan aset digital, dan membangun kolaborasi lintas komunitas.</p><h2>Kontak Kerja Sama</h2><p>Email: halo@cryptolegal.community | WhatsApp: +62 800 0000 0000</p></section>;
 }
 
-function AdminPage({ admin, setAdmin, drafts, saveDraft }: any) {
+function AdminPage({ admin, setAdmin, drafts, saveDraft, dataStatus, remoteArticles, remoteEvents }: any) {
   const [title, setTitle] = useState("");
   const [tab, setTab] = useState("Artikel");
   const login = (e: FormEvent) => { e.preventDefault(); setAdmin(true); localStorage.setItem("clc-admin", "true"); };
@@ -462,13 +593,14 @@ function AdminPage({ admin, setAdmin, drafts, saveDraft }: any) {
       </aside>
       <section>
         <h1>Dashboard Admin</h1>
+        <p className="admin-status">{dataStatus}</p>
         <div className="admin-stats"><b>{articles.length + drafts.length} Artikel</b><b>{drafts.length} Draft</b><b>81.620 Pembaca</b><b>2 Event Aktif</b></div>
         {tab === "Artikel" && <form className="editor" onSubmit={(e) => { e.preventDefault(); saveDraft({ ...articles[0], id: Date.now(), title, slug: title.toLowerCase().replaceAll(" ", "-"), date: "Draft", updated: "Draft", views: 0 }); setTitle(""); }}><h2>Manajemen Artikel</h2><input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Judul artikel" required /><select>{categories.slice(1).map((cat) => <option key={cat}>{cat}</option>)}</select><textarea placeholder="Editor: heading, paragraf, bold, italic, link, gambar, kutipan, daftar, dan tabel." /><div className="editor-actions"><button>Publikasikan / Simpan Draft</button><button type="button" onClick={() => alert("Preview artikel tersedia di mode prototype.")}>Preview</button><button type="button" onClick={() => alert("Publikasi terjadwal tersimpan sebagai simulasi.")}>Jadwalkan</button></div></form>}
         {tab === "Event" && <div className="admin-panel"><h2>Manajemen Event</h2><input placeholder="Nama event" /><input type="datetime-local" /><input placeholder="Link pendaftaran" /><select><option>Dibuka</option><option>Selesai</option></select><button className="primary">Simpan Event</button>{events.map((event) => <EventCard key={event.id} event={event} />)}</div>}
         {tab === "Course" && <div className="admin-panel"><h2>Manajemen Course dan Edukasi</h2><input placeholder="Judul materi" /><select><option>Pemula</option><option>Menengah</option><option>Lanjutan</option></select><input placeholder="Link video atau referensi eksternal" /><textarea placeholder="Deskripsi materi edukasi" /><button className="primary">Simpan Materi</button></div>}
         {tab === "Kategori" && <div className="admin-panel"><h2>Manajemen Kategori</h2><input placeholder="Nama kategori baru" /><input type="color" defaultValue="#1262d6" /><button className="primary">Tambah Kategori</button><div className="chips">{categories.slice(1).map((cat) => <button key={cat}>{cat}</button>)}</div></div>}
         {tab === "Penulis" && <div className="admin-panel"><h2>Manajemen Penulis</h2><input placeholder="Nama penulis" /><input placeholder="Email atau media sosial" /><textarea placeholder="Bio penulis" /><button className="primary">Simpan Penulis</button><SmallArticle article={articles[0]} /></div>}
-        {tab === "Statistik" && <div className="admin-panel"><h2>Statistik</h2><div className="stats"><b>Regulasi kategori teratas</b><b>21.450 pembaca artikel keamanan</b><b>Pertumbuhan pembaca 18%</b></div><h2>Artikel Paling Populer</h2>{articles.slice().sort((a, b) => b.views - a.views).slice(0, 3).map((a) => <SmallArticle key={a.slug} article={a} />)}</div>}
+        {tab === "Statistik" && <div className="admin-panel"><h2>Statistik</h2><div className="stats"><b>{remoteArticles.length || articles.length} artikel aktif</b><b>{remoteEvents.length || events.length} event terbaca</b><b>{supabaseConfig.isConfigured ? "Env Supabase aktif" : "Mode demo aktif"}</b></div><h2>Artikel Paling Populer</h2>{articles.slice().sort((a, b) => b.views - a.views).slice(0, 3).map((a) => <SmallArticle key={a.slug} article={a} />)}</div>}
       </section>
     </main>
   );
@@ -502,8 +634,8 @@ function EducationStrip() {
   return <section className="education-strip"><h2>Edukasi Crypto</h2><p>Mulai dari wallet, exchange, risiko investasi, regulasi, pajak, analisis fundamental, sampai pencegahan penipuan digital.</p><button onClick={() => navigate("/edukasi")}>Mulai Belajar</button></section>;
 }
 
-function EventPreview() {
-  return <section className="content-section"><div className="section-head"><h2>Event dan Course</h2><button onClick={() => navigate("/event")}>Lihat Event</button></div><div className="event-grid">{events.slice(0, 2).map((event) => <EventCard key={event.id} event={event} />)}</div></section>;
+function EventPreview({ events: items = events }: { events?: EventItem[] }) {
+  return <section className="content-section"><div className="section-head"><h2>Event dan Course</h2><button onClick={() => navigate("/event")}>Lihat Event</button></div><div className="event-grid">{items.slice(0, 2).map((event) => <EventCard key={event.id} event={event} />)}</div></section>;
 }
 
 function EventList({ title, items }: any) {

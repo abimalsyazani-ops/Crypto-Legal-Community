@@ -36,6 +36,17 @@ Pengaturan Netlify sudah ada di `netlify.toml`.
 
 Redirect SPA juga sudah diatur agar route seperti `/admin`, `/berita`, dan `/berita/:slug` tetap bisa dibuka langsung.
 
+## Environment Variables Netlify
+
+Tambahkan variable berikut di Netlify agar website membaca konten dari Supabase:
+
+```text
+VITE_SUPABASE_URL=https://ojczixuymitcuojlelpe.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=isi_dengan_publishable_key_atau_anon_key
+```
+
+Jangan masukkan `service_role` atau secret key ke frontend. Jika variable belum diisi, website tetap berjalan memakai data demo.
+
 ## Supabase
 
 Migration database tersedia di:
@@ -44,4 +55,4 @@ Migration database tersedia di:
 supabase/migrations/20260723114811_create_clc_cms_schema.sql
 ```
 
-Prototype frontend saat ini masih memakai data dummy dan `localStorage`. Integrasi runtime ke Supabase bisa ditambahkan setelah environment variables dan autentikasi production disiapkan.
+Frontend otomatis membaca artikel published dan event dari Supabase jika environment variables sudah diisi. Jika database belum berisi konten published, website tetap memakai data demo supaya tampilan tidak kosong.

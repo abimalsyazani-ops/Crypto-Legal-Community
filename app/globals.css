@@ -430,6 +430,16 @@ th, td { border: 1px solid var(--line); padding: 12px; text-align: left; }
 }
 .admin section { width: auto; margin: 24px; }
 .editor textarea { min-height: 180px; }
+.admin-status {
+  display: inline-flex;
+  margin: 4px 0 18px;
+  padding: 9px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-2);
+  color: var(--text);
+  font-weight: 700;
+}
 .admin-panel {
   margin-top: 22px;
   padding: 20px;
