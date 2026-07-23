@@ -326,7 +326,12 @@ export default function Home() {
     window.addEventListener("popstate", sync);
     setDark(localStorage.getItem("clc-theme") === "dark");
     setBookmarks(JSON.parse(localStorage.getItem("clc-bookmarks") || "[]"));
-    setAdmin(localStorage.getItem("clc-admin") === "true");
+    if (supabaseConfig.isConfigured) {
+      localStorage.removeItem("clc-admin");
+      setAdmin(false);
+    } else {
+      setAdmin(false);
+    }
     setDrafts(JSON.parse(localStorage.getItem("clc-drafts") || "[]"));
     setSession(readSessionFromHash() || getSavedSession());
     return () => window.removeEventListener("popstate", sync);
@@ -624,8 +629,7 @@ function AdminPage({ admin, setAdmin, drafts, saveDraft, dataStatus, remoteArtic
   const login = async (e: FormEvent) => {
     e.preventDefault();
     if (!supabaseConfig.isConfigured) {
-      setAdmin(true);
-      localStorage.setItem("clc-admin", "true");
+      setLoginStatus("Supabase belum dikonfigurasi. Isi env Netlify/local agar admin bisa login.");
       return;
     }
     try {
@@ -687,7 +691,7 @@ function AdminPage({ admin, setAdmin, drafts, saveDraft, dataStatus, remoteArtic
   };
   if (supabaseConfig.isConfigured && !session) return <main className="admin-login"><form onSubmit={login}><img src="/clc-logo.png" alt="CLC" /><h1>Login Admin CLC</h1><input required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="Email admin Supabase" type="email" /><button className="primary">Kirim Link Login</button><p>{loginStatus || "Masuk memakai Supabase Auth. Email harus sudah dibuat di Supabase dan punya role admin/editor/author di tabel profiles."}</p></form></main>;
   if (supabaseConfig.isConfigured && session && !isStaff) return <main className="admin-login"><form><img src="/clc-logo.png" alt="CLC" /><h1>Akses Ditolak</h1><p>Akun ini belum memiliki role admin, editor, atau author di tabel profiles.</p><button type="button" className="primary" onClick={() => { clearSession(); setSession(null); setProfile(null); }}>Keluar</button></form></main>;
-  if (!supabaseConfig.isConfigured && !admin) return <main className="admin-login"><form onSubmit={login}><img src="/clc-logo.png" alt="CLC" /><h1>Login Admin CLC</h1><input required placeholder="Email admin" type="email" /><input required placeholder="Password" type="password" /><button className="primary">Masuk Dashboard Demo</button><p>Mode demo: isi env Supabase di Netlify untuk mengaktifkan Auth sungguhan.</p></form></main>;
+  if (!supabaseConfig.isConfigured) return <main className="admin-login"><form onSubmit={login}><img src="/clc-logo.png" alt="CLC" /><h1>Login Admin CLC</h1><input required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="Email admin Supabase" type="email" /><button className="primary">Masuk Dashboard</button><p>{loginStatus || "Admin terkunci. Isi VITE_SUPABASE_URL dan VITE_SUPABASE_PUBLISHABLE_KEY agar login Supabase aktif."}</p></form></main>;
   const tabs = ["Artikel", "Event", "Course", "Kategori", "Penulis", "Statistik"];
   return (
     <main className="admin">
