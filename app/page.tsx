@@ -9,6 +9,7 @@ import {
   getSavedSession,
   readSessionFromHash,
   signInWithPassword,
+  signUpWithPassword,
   supabaseConfig,
   SupabaseSession,
   uploadToStorage,
@@ -681,6 +682,7 @@ function AdminPage({ admin, setAdmin, drafts, saveDraft, dataStatus, remoteArtic
   const [tab, setTab] = useState("Artikel");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [authMode, setAuthMode] = useState<"login" | "register">("login");
   const [loginStatus, setLoginStatus] = useState("");
   const [saveStatus, setSaveStatus] = useState("");
   const [dbCategories, setDbCategories] = useState<SupabaseCategoryRow[]>([]);
@@ -715,6 +717,25 @@ function AdminPage({ admin, setAdmin, drafts, saveDraft, dataStatus, remoteArtic
       setLoginStatus("Login berhasil. Memeriksa role admin...");
     } catch (error) {
       setLoginStatus(error instanceof Error ? error.message : "Login gagal.");
+    }
+  };
+
+  const register = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!supabaseConfig.isConfigured) {
+      setLoginStatus("Supabase belum dikonfigurasi. Isi env Netlify/local agar pendaftaran bisa dipakai.");
+      return;
+    }
+    try {
+      const result = await signUpWithPassword(email, password);
+      setLoginStatus(
+        result.needsConfirmation
+          ? "Pendaftaran berhasil. Cek email untuk konfirmasi, lalu minta owner memberi role admin/editor/author."
+          : "Pendaftaran berhasil. Akun dibuat sebagai member; minta owner memberi role admin/editor/author."
+      );
+      setAuthMode("login");
+    } catch (error) {
+      setLoginStatus(error instanceof Error ? error.message : "Pendaftaran gagal.");
     }
   };
 
@@ -848,9 +869,9 @@ function AdminPage({ admin, setAdmin, drafts, saveDraft, dataStatus, remoteArtic
     await loadAdminData();
   };
 
-  if (supabaseConfig.isConfigured && !session) return <main className="admin-login"><form onSubmit={login}><img src="/clc-logo.png" alt="CLC" /><h1>Login Admin CLC</h1><label>Email Admin</label><input required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="admin@email.com" type="email" autoComplete="username" /><label>Password</label><input required value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Masukkan password" type="password" autoComplete="current-password" /><button className="primary">Masuk dengan Email dan Password</button><p>{loginStatus || "Login hanya memakai akun Supabase Auth yang punya role admin/editor/author di tabel profiles."}</p></form></main>;
+  if (supabaseConfig.isConfigured && !session) return <main className="admin-login"><form onSubmit={authMode === "login" ? login : register}><img src="/clc-logo.png" alt="CLC" /><h1>{authMode === "login" ? "Login Admin CLC" : "Daftar Akun Admin"}</h1><div className="auth-switch"><button type="button" className={authMode === "login" ? "active" : ""} onClick={() => setAuthMode("login")}>Login</button><button type="button" className={authMode === "register" ? "active" : ""} onClick={() => setAuthMode("register")}>Daftar</button></div><label>Email Admin</label><input required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="admin@email.com" type="email" autoComplete="username" /><label>Password</label><input required value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Masukkan password" type="password" autoComplete={authMode === "login" ? "current-password" : "new-password"} minLength={6} /><button className="primary">{authMode === "login" ? "Masuk dengan Email dan Password" : "Daftar dengan Email dan Password"}</button><p>{loginStatus || (authMode === "login" ? "Login memakai akun Supabase Auth yang punya role admin/editor/author di tabel profiles." : "Daftar membuat akun Supabase. Akses dashboard aktif setelah owner memberi role admin/editor/author.")}</p></form></main>;
   if (supabaseConfig.isConfigured && session && !isStaff) return <main className="admin-login"><form><img src="/clc-logo.png" alt="CLC" /><h1>Akses Ditolak</h1><p>Akun ini belum memiliki role admin, editor, atau author di tabel profiles.</p><button type="button" className="primary" onClick={() => { clearSession(); setSession(null); setProfile(null); }}>Keluar</button></form></main>;
-  if (!supabaseConfig.isConfigured) return <main className="admin-login"><form onSubmit={login}><img src="/clc-logo.png" alt="CLC" /><h1>Login Admin CLC</h1><label>Email Admin</label><input required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="admin@email.com" type="email" autoComplete="username" /><label>Password</label><input required value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Masukkan password" type="password" autoComplete="current-password" /><button className="primary">Masuk dengan Email dan Password</button><p>{loginStatus || "Admin terkunci. Isi VITE_SUPABASE_URL dan VITE_SUPABASE_PUBLISHABLE_KEY agar login email/password aktif."}</p></form></main>;
+  if (!supabaseConfig.isConfigured) return <main className="admin-login"><form onSubmit={login}><img src="/clc-logo.png" alt="CLC" /><h1>Login Admin CLC</h1><div className="auth-switch"><button type="button" className="active">Login</button><button type="button" disabled>Daftar</button></div><label>Email Admin</label><input required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="admin@email.com" type="email" autoComplete="username" /><label>Password</label><input required value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Masukkan password" type="password" autoComplete="current-password" /><button className="primary">Masuk dengan Email dan Password</button><p>{loginStatus || "Supabase belum dikonfigurasi di build ini. Isi VITE_SUPABASE_URL dan VITE_SUPABASE_PUBLISHABLE_KEY di Netlify/local, lalu redeploy atau restart dev server."}</p></form></main>;
 
   const tabs = ["Artikel", "Event", "Course", "Kategori", "Penulis", "Statistik"];
   const publishedCount = adminArticles.filter((item) => item.status === "published").length;

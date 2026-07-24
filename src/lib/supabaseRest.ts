@@ -170,6 +170,47 @@ export async function signInWithPassword(email: string, password: string): Promi
   return session;
 }
 
+export async function signUpWithPassword(email: string, password: string): Promise<{ needsConfirmation: boolean }> {
+  if (!supabaseConfig.isConfigured || !supabaseUrl || !supabaseKey) {
+    throw new Error("Supabase belum dikonfigurasi.");
+  }
+
+  const response = await fetch(`${supabaseUrl}/auth/v1/signup`, {
+    method: "POST",
+    headers: {
+      apikey: supabaseKey,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      email,
+      password,
+      data: {
+        display_name: email.split("@")[0],
+      },
+      gotrue_meta_security: {},
+    }),
+  });
+
+  if (!response.ok) {
+    const detail = await response.text();
+    throw new Error(detail || "Pendaftaran gagal. Pastikan email valid dan password memenuhi aturan Supabase.");
+  }
+
+  const data = await response.json();
+  if (data.access_token) {
+    const session: SupabaseSession = {
+      accessToken: data.access_token,
+      refreshToken: data.refresh_token,
+      expiresAt: data.expires_at,
+      email: data.user?.email,
+    };
+    saveSession(session);
+    return { needsConfirmation: false };
+  }
+
+  return { needsConfirmation: true };
+}
+
 export async function fetchProfile(session: SupabaseSession) {
   if (!supabaseUrl || !supabaseKey) throw new Error("Supabase belum dikonfigurasi.");
 

@@ -78,6 +78,8 @@ Alurnya:
 3. Set `role` menjadi `admin`, `editor`, atau `author`.
 4. Login di `/admin` memakai email/password Supabase.
 
+Form `/admin` juga menyediakan tombol **Daftar**. Pendaftaran membuat akun Supabase Auth dan profil default dengan role `member`. Agar akun tersebut bisa masuk dashboard, owner tetap harus mengubah role di tabel `profiles` menjadi `admin`, `editor`, atau `author`.
+
 Pastikan URL berikut masuk ke daftar redirect Supabase Auth:
 
 ```text
