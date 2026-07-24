@@ -140,6 +140,19 @@ export function clearSession() {
   localStorage.removeItem("clc-supabase-session");
 }
 
+function parseSupabaseAuthError(detail: string, fallback: string) {
+  if (!detail) return fallback;
+  try {
+    const parsed = JSON.parse(detail) as { error_code?: string; msg?: string; error_description?: string };
+    if (parsed.error_code === "invalid_credentials") {
+      return "Email atau password salah, akun belum terdaftar, atau email belum dikonfirmasi.";
+    }
+    return parsed.msg || parsed.error_description || fallback;
+  } catch {
+    return detail || fallback;
+  }
+}
+
 export async function signInWithPassword(email: string, password: string): Promise<SupabaseSession> {
   if (!supabaseConfig.isConfigured || !supabaseUrl || !supabaseKey) {
     throw new Error("Supabase belum dikonfigurasi.");
@@ -156,7 +169,7 @@ export async function signInWithPassword(email: string, password: string): Promi
 
   if (!response.ok) {
     const detail = await response.text();
-    throw new Error(detail || "Email atau password Supabase tidak valid.");
+    throw new Error(parseSupabaseAuthError(detail, "Email atau password Supabase tidak valid."));
   }
 
   const data = await response.json();
@@ -193,7 +206,7 @@ export async function signUpWithPassword(email: string, password: string): Promi
 
   if (!response.ok) {
     const detail = await response.text();
-    throw new Error(detail || "Pendaftaran gagal. Pastikan email valid dan password memenuhi aturan Supabase.");
+    throw new Error(parseSupabaseAuthError(detail, "Pendaftaran gagal. Pastikan email valid dan password memenuhi aturan Supabase."));
   }
 
   const data = await response.json();
