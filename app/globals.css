@@ -471,6 +471,11 @@ th, td { border: 1px solid var(--line); padding: 12px; text-align: left; }
   color: var(--text);
   font-weight: 700;
 }
+.admin-install-note {
+  margin: -8px 0 18px;
+  color: var(--muted);
+  font-weight: 700;
+}
 .admin-panel {
   margin-top: 22px;
   padding: 20px;

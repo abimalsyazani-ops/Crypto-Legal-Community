@@ -685,6 +685,7 @@ function AdminPage({ admin, setAdmin, drafts, saveDraft, dataStatus, remoteArtic
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
   const [loginStatus, setLoginStatus] = useState("");
   const [saveStatus, setSaveStatus] = useState("");
+  const [installStatus, setInstallStatus] = useState("");
   const [dbCategories, setDbCategories] = useState<SupabaseCategoryRow[]>([]);
   const [adminArticles, setAdminArticles] = useState<AdminArticleRow[]>([]);
   const [adminEvents, setAdminEvents] = useState<AdminEventRow[]>([]);
@@ -878,9 +879,13 @@ function AdminPage({ admin, setAdmin, drafts, saveDraft, dataStatus, remoteArtic
   const draftCount = adminArticles.filter((item) => item.status === "draft").length;
   const totalViews = adminArticles.reduce((sum, item) => sum + (item.view_count || 0), 0);
   const installDashboard = async () => {
-    if (!installPrompt) return;
+    if (!installPrompt) {
+      setInstallStatus("Jika tombol install browser belum muncul, buka menu browser lalu pilih Install app atau Add to Home screen.");
+      return;
+    }
     await installPrompt.prompt();
-    await installPrompt.userChoice.catch(() => null);
+    const choice = await installPrompt.userChoice.catch(() => null);
+    setInstallStatus(choice?.outcome === "accepted" ? "Dashboard admin berhasil dipasang." : "Instalasi dibatalkan. Kamu tetap bisa install dari menu browser.");
     setInstallPrompt(null);
   };
 
@@ -895,8 +900,9 @@ function AdminPage({ admin, setAdmin, drafts, saveDraft, dataStatus, remoteArtic
         <h1>Dashboard Admin</h1>
         <div className="admin-toolbar">
           <p className="admin-status">{dataStatus} {profile ? `Login sebagai ${profile.display_name} (${profile.role}).` : ""}</p>
-          {installPrompt && <button className="secondary" onClick={installDashboard}>Install Dashboard</button>}
+          <button className="secondary" onClick={installDashboard}>Install Dashboard</button>
         </div>
+        {installStatus && <p className="admin-install-note">{installStatus}</p>}
         <div className="admin-stats"><b>{adminArticles.length} Artikel</b><b>{draftCount} Draft</b><b>{totalViews.toLocaleString("id-ID")} Pembaca</b><b>{adminEvents.length} Event</b></div>
 
         {tab === "Artikel" && <div className="admin-panel"><form className="editor" onSubmit={async (e) => { e.preventDefault(); try { setSaveStatus("Menyimpan artikel..."); await saveArticle("published"); setSaveStatus("Artikel berhasil dipublikasikan."); } catch (error) { setSaveStatus(error instanceof Error ? error.message : "Gagal menyimpan artikel."); } }}><h2>{editingArticleId ? "Edit Artikel" : "Manajemen Artikel"}</h2><input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Judul artikel" required /><input value={excerpt} onChange={(e) => setExcerpt(e.target.value)} placeholder="Ringkasan artikel" required /><select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}>{dbCategories.map((cat) => <option value={cat.id} key={cat.id}>{cat.name}</option>)}</select><input type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => handleImageUpload(event.target.files?.[0])} /><small>{uploadedImage || "Upload gambar utama artikel"}</small><textarea value={body} onChange={(e) => setBody(e.target.value)} placeholder="Tulis isi artikel di sini." required /><p className="admin-status">{saveStatus || "Siap menyimpan ke Supabase."}</p><div className="editor-actions"><button>Publikasikan</button><button type="button" onClick={async () => { try { await saveArticle("draft"); setSaveStatus("Draft berhasil disimpan."); } catch (error) { setSaveStatus(error instanceof Error ? error.message : "Gagal menyimpan draft."); } }}>Simpan Draft</button>{editingArticleId && <button type="button" onClick={resetArticleForm}>Batal Edit</button>}</div></form><h2>Daftar Artikel</h2><div className="admin-list">{adminArticles.map((article) => <div key={article.id} className="admin-row"><span><b>{article.title}</b><small>{article.status} - {article.categories?.name || "Tanpa kategori"} - {formatDate(article.published_at || article.created_at)}</small></span><div><button onClick={() => editArticle(article)}>Edit</button><button onClick={() => deleteArticle(article.id)}>Hapus</button></div></div>)}</div></div>}
