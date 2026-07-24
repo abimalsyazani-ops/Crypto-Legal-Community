@@ -69,7 +69,7 @@ Frontend otomatis membaca artikel published dan event dari Supabase jika environ
 
 ## Admin Auth dan Storage
 
-Dashboard `/admin` memakai Supabase Auth jika environment variables aktif. Login menggunakan email/password Supabase.
+Dashboard `/admin` memakai Supabase Auth jika environment variables aktif. Login hanya menggunakan email dan password Supabase, bukan Magic Link.
 
 Alurnya:
 

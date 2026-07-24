@@ -140,34 +140,6 @@ export function clearSession() {
   localStorage.removeItem("clc-supabase-session");
 }
 
-export async function requestMagicLink(email: string) {
-  if (!supabaseConfig.isConfigured || !supabaseUrl || !supabaseKey) {
-    throw new Error("Supabase belum dikonfigurasi.");
-  }
-
-  const response = await fetch(`${supabaseUrl}/auth/v1/otp`, {
-    method: "POST",
-    headers: {
-      apikey: supabaseKey,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      email,
-      create_user: false,
-      options: {
-        email_redirect_to: `${window.location.origin}/admin`,
-      },
-    }),
-  });
-
-  if (!response.ok) {
-    const detail = await response.text();
-    throw new Error(
-      detail || "Gagal mengirim link login. Pastikan email sudah terdaftar di Supabase Auth."
-    );
-  }
-}
-
 export async function signInWithPassword(email: string, password: string): Promise<SupabaseSession> {
   if (!supabaseConfig.isConfigured || !supabaseUrl || !supabaseKey) {
     throw new Error("Supabase belum dikonfigurasi.");
