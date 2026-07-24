@@ -871,14 +871,6 @@ function AdminPage({ admin, setAdmin, drafts, saveDraft, dataStatus, remoteArtic
     await loadAdminData();
   };
 
-  if (supabaseConfig.isConfigured && !session) return <main className="admin-login"><form onSubmit={authMode === "login" ? login : register}><img src="/clc-logo.png" alt="CLC" /><h1>{authMode === "login" ? "Login Admin CLC" : "Daftar Akun Admin"}</h1><div className="auth-switch"><button type="button" className={authMode === "login" ? "active" : ""} onClick={() => setAuthMode("login")}>Login</button><button type="button" className={authMode === "register" ? "active" : ""} onClick={() => setAuthMode("register")}>Daftar</button></div><label>Email Admin</label><input required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="admin@email.com" type="email" autoComplete="username" /><label>Password</label><div className="password-field"><input required value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Masukkan password" type={showPassword ? "text" : "password"} autoComplete={authMode === "login" ? "current-password" : "new-password"} minLength={6} /><button type="button" onClick={() => setShowPassword((current) => !current)}>{showPassword ? "Sembunyikan" : "Tampilkan"}</button></div><button className="primary">{authMode === "login" ? "Masuk dengan Email dan Password" : "Daftar dengan Email dan Password"}</button><p>{loginStatus || (authMode === "login" ? "Login memakai akun Supabase Auth yang punya role admin/editor/author di tabel profiles." : "Daftar membuat akun Supabase. Akses dashboard aktif setelah owner memberi role admin/editor/author.")}</p></form></main>;
-  if (supabaseConfig.isConfigured && session && !isStaff) return <main className="admin-login"><form><img src="/clc-logo.png" alt="CLC" /><h1>Akses Ditolak</h1><p>Akun ini belum memiliki role admin, editor, atau author di tabel profiles.</p><button type="button" className="primary" onClick={() => { clearSession(); setSession(null); setProfile(null); }}>Keluar</button></form></main>;
-  if (!supabaseConfig.isConfigured) return <main className="admin-login"><form onSubmit={authMode === "login" ? login : register}><img src="/clc-logo.png" alt="CLC" /><h1>{authMode === "login" ? "Login Admin CLC" : "Daftar Akun Admin"}</h1><div className="auth-switch"><button type="button" className={authMode === "login" ? "active" : ""} onClick={() => { setAuthMode("login"); setLoginStatus(""); }}>Login</button><button type="button" className={authMode === "register" ? "active" : ""} onClick={() => { setAuthMode("register"); setLoginStatus("Daftar belum bisa dipakai karena Supabase belum dikonfigurasi di build ini."); }}>Daftar</button></div><label>Email Admin</label><input required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="admin@email.com" type="email" autoComplete="username" /><label>Password</label><div className="password-field"><input required value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Masukkan password" type={showPassword ? "text" : "password"} autoComplete={authMode === "login" ? "current-password" : "new-password"} /><button type="button" onClick={() => setShowPassword((current) => !current)}>{showPassword ? "Sembunyikan" : "Tampilkan"}</button></div><button className="primary">{authMode === "login" ? "Masuk dengan Email dan Password" : "Daftar dengan Email dan Password"}</button><p>{loginStatus || "Supabase belum dikonfigurasi di build ini. Isi VITE_SUPABASE_URL dan VITE_SUPABASE_PUBLISHABLE_KEY di Netlify/local, lalu redeploy atau restart dev server."}</p></form></main>;
-
-  const tabs = ["Artikel", "Event", "Course", "Kategori", "Penulis", "Statistik"];
-  const publishedCount = adminArticles.filter((item) => item.status === "published").length;
-  const draftCount = adminArticles.filter((item) => item.status === "draft").length;
-  const totalViews = adminArticles.reduce((sum, item) => sum + (item.view_count || 0), 0);
   const installDashboard = async () => {
     if (!installPrompt) {
       setInstallStatus("Jika tombol install browser belum muncul, buka menu browser lalu pilih Install app atau Add to Home screen.");
@@ -889,6 +881,35 @@ function AdminPage({ admin, setAdmin, drafts, saveDraft, dataStatus, remoteArtic
     setInstallStatus(choice?.outcome === "accepted" ? "Dashboard admin berhasil dipasang." : "Instalasi dibatalkan. Kamu tetap bisa install dari menu browser.");
     setInstallPrompt(null);
   };
+
+  useEffect(() => {
+    if (!session || !isStaff) return;
+    let typedCommand = "";
+    const handleInstallCommand = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (target && ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName)) return;
+      if (event.ctrlKey || event.metaKey || event.altKey || event.key.length !== 1) return;
+
+      typedCommand = `${typedCommand}${event.key.toLowerCase()}`.slice(-6);
+      if (typedCommand === "instal") {
+        event.preventDefault();
+        typedCommand = "";
+        installDashboard();
+      }
+    };
+
+    window.addEventListener("keydown", handleInstallCommand);
+    return () => window.removeEventListener("keydown", handleInstallCommand);
+  }, [session, isStaff, installPrompt]);
+
+  if (supabaseConfig.isConfigured && !session) return <main className="admin-login"><form onSubmit={authMode === "login" ? login : register}><img src="/clc-logo.png" alt="CLC" /><h1>{authMode === "login" ? "Login Admin CLC" : "Daftar Akun Admin"}</h1><div className="auth-switch"><button type="button" className={authMode === "login" ? "active" : ""} onClick={() => setAuthMode("login")}>Login</button><button type="button" className={authMode === "register" ? "active" : ""} onClick={() => setAuthMode("register")}>Daftar</button></div><label>Email Admin</label><input required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="admin@email.com" type="email" autoComplete="username" /><label>Password</label><div className="password-field"><input required value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Masukkan password" type={showPassword ? "text" : "password"} autoComplete={authMode === "login" ? "current-password" : "new-password"} minLength={6} /><button type="button" onClick={() => setShowPassword((current) => !current)}>{showPassword ? "Sembunyikan" : "Tampilkan"}</button></div><button className="primary">{authMode === "login" ? "Masuk dengan Email dan Password" : "Daftar dengan Email dan Password"}</button><p>{loginStatus || (authMode === "login" ? "Login memakai akun Supabase Auth yang punya role admin/editor/author di tabel profiles." : "Daftar membuat akun Supabase. Akses dashboard aktif setelah owner memberi role admin/editor/author.")}</p></form></main>;
+  if (supabaseConfig.isConfigured && session && !isStaff) return <main className="admin-login"><form><img src="/clc-logo.png" alt="CLC" /><h1>Akses Ditolak</h1><p>Akun ini belum memiliki role admin, editor, atau author di tabel profiles.</p><button type="button" className="primary" onClick={() => { clearSession(); setSession(null); setProfile(null); }}>Keluar</button></form></main>;
+  if (!supabaseConfig.isConfigured) return <main className="admin-login"><form onSubmit={authMode === "login" ? login : register}><img src="/clc-logo.png" alt="CLC" /><h1>{authMode === "login" ? "Login Admin CLC" : "Daftar Akun Admin"}</h1><div className="auth-switch"><button type="button" className={authMode === "login" ? "active" : ""} onClick={() => { setAuthMode("login"); setLoginStatus(""); }}>Login</button><button type="button" className={authMode === "register" ? "active" : ""} onClick={() => { setAuthMode("register"); setLoginStatus("Daftar belum bisa dipakai karena Supabase belum dikonfigurasi di build ini."); }}>Daftar</button></div><label>Email Admin</label><input required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="admin@email.com" type="email" autoComplete="username" /><label>Password</label><div className="password-field"><input required value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Masukkan password" type={showPassword ? "text" : "password"} autoComplete={authMode === "login" ? "current-password" : "new-password"} /><button type="button" onClick={() => setShowPassword((current) => !current)}>{showPassword ? "Sembunyikan" : "Tampilkan"}</button></div><button className="primary">{authMode === "login" ? "Masuk dengan Email dan Password" : "Daftar dengan Email dan Password"}</button><p>{loginStatus || "Supabase belum dikonfigurasi di build ini. Isi VITE_SUPABASE_URL dan VITE_SUPABASE_PUBLISHABLE_KEY di Netlify/local, lalu redeploy atau restart dev server."}</p></form></main>;
+
+  const tabs = ["Artikel", "Event", "Course", "Kategori", "Penulis", "Statistik"];
+  const publishedCount = adminArticles.filter((item) => item.status === "published").length;
+  const draftCount = adminArticles.filter((item) => item.status === "draft").length;
+  const totalViews = adminArticles.reduce((sum, item) => sum + (item.view_count || 0), 0);
 
   return (
     <main className="admin">
