@@ -12,21 +12,21 @@
   "categories": ["news", "education", "business"],
   "icons": [
     {
-      "src": "/clc-admin-icon.jpg",
+      "src": "/clc-admin-icon-192.png",
       "sizes": "192x192",
-      "type": "image/jpeg",
+      "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/clc-admin-icon.jpg",
+      "src": "/clc-admin-icon-512.png",
       "sizes": "512x512",
-      "type": "image/jpeg",
+      "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/clc-admin-icon.jpg",
+      "src": "/clc-admin-icon-512.png",
       "sizes": "512x512",
-      "type": "image/jpeg",
+      "type": "image/png",
       "purpose": "maskable"
     }
   ],
@@ -36,14 +36,14 @@
       "short_name": "Admin",
       "description": "Buka dashboard admin CLC.",
       "url": "/admin",
-      "icons": [{ "src": "/clc-admin-icon.jpg", "sizes": "192x192" }]
+      "icons": [{ "src": "/clc-admin-icon-192.png", "sizes": "192x192", "type": "image/png" }]
     },
     {
       "name": "Kelola Berita",
       "short_name": "Berita",
       "description": "Buka halaman admin untuk mengelola artikel.",
       "url": "/admin?tab=artikel",
-      "icons": [{ "src": "/clc-admin-icon.jpg", "sizes": "192x192" }]
+      "icons": [{ "src": "/clc-admin-icon-192.png", "sizes": "192x192", "type": "image/png" }]
     }
   ]
 }
