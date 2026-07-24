@@ -401,6 +401,21 @@ th, td { border: 1px solid var(--line); padding: 12px; text-align: left; }
 }
 .admin-login img { width: 220px; margin-bottom: 14px; }
 .admin-login input, .editor input, .editor textarea, .editor select { width: 100%; margin: 8px 0; }
+.password-field {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  align-items: center;
+}
+.password-field input {
+  min-width: 0;
+}
+.password-field button {
+  padding-inline: 12px;
+  background: var(--surface-2);
+  color: var(--text);
+  border: 1px solid var(--line);
+}
 .auth-switch {
   display: grid;
   grid-template-columns: 1fr 1fr;
