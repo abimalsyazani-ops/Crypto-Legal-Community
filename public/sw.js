@@ -1,5 +1,5 @@
 const CACHE_NAME = "clc-admin-pwa-v1";
-const APP_SHELL = ["/", "/admin", "/clc-logo.png", "/manifest.webmanifest"];
+const APP_SHELL = ["/", "/admin", "/clc-logo.png", "/clc-admin-icon.jpg", "/manifest.webmanifest"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
