@@ -36,6 +36,16 @@ Pengaturan Netlify sudah ada di `netlify.toml`.
 
 Redirect SPA juga sudah diatur agar route seperti `/admin`, `/berita`, dan `/berita/:slug` tetap bisa dibuka langsung.
 
+## PWA Admin
+
+Dashboard admin di `/admin` sudah mendukung PWA. Setelah website dibuka dari domain HTTPS Netlify, admin bisa memasang dashboard melalui tombol **Install Dashboard** yang muncul di halaman admin atau melalui menu browser **Install app**.
+
+PWA memakai:
+
+- `public/manifest.webmanifest` dengan `start_url` ke `/admin`,
+- `public/sw.js` untuk cache app shell dasar,
+- metadata install di `index.html`.
+
 ## Environment Variables Netlify
 
 Tambahkan variable berikut di Netlify agar website membaca konten dari Supabase:

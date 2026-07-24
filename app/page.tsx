@@ -343,6 +343,11 @@ function shareArticle(article: Article) {
   alert("Link artikel disalin.");
 }
 
+type InstallPromptEvent = Event & {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed"; platform: string }>;
+};
+
 export default function Home() {
   const [path, setPath] = useState("/");
   const [query, setQuery] = useState("");
@@ -359,6 +364,7 @@ export default function Home() {
   );
   const [session, setSession] = useState<SupabaseSession | null>(null);
   const [profile, setProfile] = useState<{ display_name: string; role: string } | null>(null);
+  const [installPrompt, setInstallPrompt] = useState<InstallPromptEvent | null>(null);
 
   useEffect(() => {
     const sync = () => setPath(window.location.pathname);
@@ -380,6 +386,16 @@ export default function Home() {
       console.error(error);
     }
     return () => window.removeEventListener("popstate", sync);
+  }, []);
+
+  useEffect(() => {
+    const handleInstallPrompt = (event: Event) => {
+      event.preventDefault();
+      setInstallPrompt(event as InstallPromptEvent);
+    };
+
+    window.addEventListener("beforeinstallprompt", handleInstallPrompt);
+    return () => window.removeEventListener("beforeinstallprompt", handleInstallPrompt);
   }, []);
 
   useEffect(() => {
@@ -484,6 +500,8 @@ export default function Home() {
         setSession={setSession}
         profile={profile}
         setProfile={setProfile}
+        installPrompt={installPrompt}
+        setInstallPrompt={setInstallPrompt}
       />
     );
   }
@@ -659,7 +677,7 @@ function AboutPage() {
   return <section className="page-shell about"><h1>Tentang CLC</h1><p>Crypto Legal Community (CLC) adalah media dan komunitas edukasi yang berfokus pada perkembangan aset kripto, Web3, teknologi blockchain, regulasi, serta ekonomi digital. CLC hadir untuk menyajikan informasi yang akurat, mudah dipahami, dan relevan bagi masyarakat, pelaku industri, investor, maupun generasi muda yang ingin memahami dunia kripto dari sisi teknologi, ekonomi, dan hukum.</p><h2>Visi</h2><p>Menjadi media dan platform edukasi crypto legal yang terpercaya, independen, dan berkontribusi dalam membangun ekosistem aset digital yang aman, transparan, serta bertanggung jawab di Indonesia.</p><h2>Misi</h2><ol><li>Menyajikan berita dan informasi terkini seputar kripto, blockchain, Web3, regulasi, dan ekonomi digital.</li><li>Meningkatkan literasi masyarakat melalui konten edukasi yang objektif, praktis, dan mudah dipahami.</li><li>Menjadi ruang diskusi dan kolaborasi bagi komunitas, akademisi, praktisi hukum, investor, serta pelaku industri aset digital.</li><li>Mendorong terciptanya ekosistem kripto yang lebih aman, patuh hukum, transparan, dan berkelanjutan.</li><li>Menghubungkan perkembangan teknologi dengan pemahaman hukum serta perlindungan bagi masyarakat dan investor.</li></ol><h2>Kontak</h2><p>Email: cryptolegalcommunity@gmail.com | WhatsApp: 085720384852</p></section>;
 }
 
-function AdminPage({ admin, setAdmin, drafts, saveDraft, dataStatus, remoteArticles, remoteEvents, session, setSession, profile, setProfile }: any) {
+function AdminPage({ admin, setAdmin, drafts, saveDraft, dataStatus, remoteArticles, remoteEvents, session, setSession, profile, setProfile, installPrompt, setInstallPrompt }: any) {
   const [tab, setTab] = useState("Artikel");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -838,6 +856,12 @@ function AdminPage({ admin, setAdmin, drafts, saveDraft, dataStatus, remoteArtic
   const publishedCount = adminArticles.filter((item) => item.status === "published").length;
   const draftCount = adminArticles.filter((item) => item.status === "draft").length;
   const totalViews = adminArticles.reduce((sum, item) => sum + (item.view_count || 0), 0);
+  const installDashboard = async () => {
+    if (!installPrompt) return;
+    await installPrompt.prompt();
+    await installPrompt.userChoice.catch(() => null);
+    setInstallPrompt(null);
+  };
 
   return (
     <main className="admin">
@@ -848,7 +872,10 @@ function AdminPage({ admin, setAdmin, drafts, saveDraft, dataStatus, remoteArtic
       </aside>
       <section>
         <h1>Dashboard Admin</h1>
-        <p className="admin-status">{dataStatus} {profile ? `Login sebagai ${profile.display_name} (${profile.role}).` : ""}</p>
+        <div className="admin-toolbar">
+          <p className="admin-status">{dataStatus} {profile ? `Login sebagai ${profile.display_name} (${profile.role}).` : ""}</p>
+          {installPrompt && <button className="secondary" onClick={installDashboard}>Install Dashboard</button>}
+        </div>
         <div className="admin-stats"><b>{adminArticles.length} Artikel</b><b>{draftCount} Draft</b><b>{totalViews.toLocaleString("id-ID")} Pembaca</b><b>{adminEvents.length} Event</b></div>
 
         {tab === "Artikel" && <div className="admin-panel"><form className="editor" onSubmit={async (e) => { e.preventDefault(); try { setSaveStatus("Menyimpan artikel..."); await saveArticle("published"); setSaveStatus("Artikel berhasil dipublikasikan."); } catch (error) { setSaveStatus(error instanceof Error ? error.message : "Gagal menyimpan artikel."); } }}><h2>{editingArticleId ? "Edit Artikel" : "Manajemen Artikel"}</h2><input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Judul artikel" required /><input value={excerpt} onChange={(e) => setExcerpt(e.target.value)} placeholder="Ringkasan artikel" required /><select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}>{dbCategories.map((cat) => <option value={cat.id} key={cat.id}>{cat.name}</option>)}</select><input type="file" accept="image/png,image/jpeg,image/webp" onChange={(event) => handleImageUpload(event.target.files?.[0])} /><small>{uploadedImage || "Upload gambar utama artikel"}</small><textarea value={body} onChange={(e) => setBody(e.target.value)} placeholder="Tulis isi artikel di sini." required /><p className="admin-status">{saveStatus || "Siap menyimpan ke Supabase."}</p><div className="editor-actions"><button>Publikasikan</button><button type="button" onClick={async () => { try { await saveArticle("draft"); setSaveStatus("Draft berhasil disimpan."); } catch (error) { setSaveStatus(error instanceof Error ? error.message : "Gagal menyimpan draft."); } }}>Simpan Draft</button>{editingArticleId && <button type="button" onClick={resetArticleForm}>Batal Edit</button>}</div></form><h2>Daftar Artikel</h2><div className="admin-list">{adminArticles.map((article) => <div key={article.id} className="admin-row"><span><b>{article.title}</b><small>{article.status} - {article.categories?.name || "Tanpa kategori"} - {formatDate(article.published_at || article.created_at)}</small></span><div><button onClick={() => editArticle(article)}>Edit</button><button onClick={() => deleteArticle(article.id)}>Hapus</button></div></div>)}</div></div>}

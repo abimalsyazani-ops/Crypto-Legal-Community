@@ -1,0 +1,49 @@
+{
+  "name": "Crypto Legal Community Admin",
+  "short_name": "CLC Admin",
+  "description": "Dashboard admin Crypto Legal Community untuk mengelola artikel, event, course, dan statistik.",
+  "id": "/admin",
+  "start_url": "/admin",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#07111f",
+  "theme_color": "#07111f",
+  "categories": ["news", "education", "business"],
+  "icons": [
+    {
+      "src": "/clc-logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/clc-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/clc-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Dashboard Admin",
+      "short_name": "Admin",
+      "description": "Buka dashboard admin CLC.",
+      "url": "/admin",
+      "icons": [{ "src": "/clc-logo.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Kelola Berita",
+      "short_name": "Berita",
+      "description": "Buka halaman admin untuk mengelola artikel.",
+      "url": "/admin?tab=artikel",
+      "icons": [{ "src": "/clc-logo.png", "sizes": "192x192" }]
+    }
+  ]
+}
