@@ -648,8 +648,8 @@ function HomePage(props: any) {
             <Meta article={featured} />
             <button className="primary" onClick={() => navigate(`/berita/${featured.slug}`)}>Baca Selengkapnya</button>
           </div>
-          <button className="hero-arrow hero-arrow-left" onClick={() => moveHero(-1)} aria-label="Berita sebelumnya">‹</button>
-          <button className="hero-arrow hero-arrow-right" onClick={() => moveHero(1)} aria-label="Berita berikutnya">›</button>
+          <button className="hero-arrow hero-arrow-left" onClick={() => moveHero(-1)} aria-label="Berita sebelumnya"><span>‹</span></button>
+          <button className="hero-arrow hero-arrow-right" onClick={() => moveHero(1)} aria-label="Berita berikutnya"><span>›</span></button>
           <div className="hero-dots" aria-label="Pilihan berita utama">{heroArticles.map((article, index) => <button key={article.slug} className={index === heroIndex ? "active" : ""} onClick={() => setHeroIndex(index)} aria-label={`Tampilkan ${article.title}`} />)}</div>
         </article>
         <aside className="choice-list">

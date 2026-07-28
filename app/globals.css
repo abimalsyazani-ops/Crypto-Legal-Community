@@ -154,6 +154,7 @@ main { min-height: 70vh; }
   left: 0;
   right: 0;
   bottom: 0;
+  z-index: 4;
   padding: clamp(24px, 5vw, 46px) clamp(24px, 5vw, 46px) 58px;
   color: #fff;
   background: linear-gradient(transparent, rgba(5,12,22,.92));
@@ -166,18 +167,24 @@ p { color: var(--muted); line-height: 1.75; }
 .hero-arrow {
   position: absolute;
   top: 50%;
-  z-index: 3;
-  display: inline-grid;
+  z-index: 5;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 44px;
   height: 44px;
-  place-items: center;
+  padding: 0;
   border: 1px solid rgba(255,255,255,.3);
   border-radius: 50%;
   background: rgba(6,17,31,.68);
   color: #fff;
+  transform: translateY(-50%);
+}
+.hero-arrow span {
+  display: block;
+  margin-top: -3px;
   font-size: 34px;
   line-height: 1;
-  transform: translateY(-50%);
 }
 .hero-arrow:hover {
   background: var(--yellow);
