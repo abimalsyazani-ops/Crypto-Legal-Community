@@ -154,7 +154,7 @@ main { min-height: 70vh; }
   left: 0;
   right: 0;
   bottom: 0;
-  padding: clamp(24px, 5vw, 46px);
+  padding: clamp(24px, 5vw, 46px) clamp(24px, 5vw, 46px) 58px;
   color: #fff;
   background: linear-gradient(transparent, rgba(5,12,22,.92));
 }
@@ -163,6 +163,50 @@ h2 { font-size: clamp(24px, 3vw, 34px); margin: 0 0 16px; letter-spacing: 0; }
 h3 { font-size: 20px; line-height: 1.28; margin: 10px 0; letter-spacing: 0; }
 p { color: var(--muted); line-height: 1.75; }
 .hero-card p { max-width: 780px; color: #dbe5ef; }
+.hero-arrow {
+  position: absolute;
+  top: 50%;
+  z-index: 3;
+  display: inline-grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border: 1px solid rgba(255,255,255,.3);
+  border-radius: 50%;
+  background: rgba(6,17,31,.68);
+  color: #fff;
+  font-size: 34px;
+  line-height: 1;
+  transform: translateY(-50%);
+}
+.hero-arrow:hover {
+  background: var(--yellow);
+  color: #111827;
+}
+.hero-arrow-left { left: 18px; }
+.hero-arrow-right { right: 18px; }
+.hero-dots {
+  position: absolute;
+  left: 50%;
+  bottom: 18px;
+  z-index: 3;
+  display: flex;
+  gap: 8px;
+  transform: translateX(-50%);
+}
+.hero-dots button {
+  width: 9px;
+  height: 9px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255,255,255,.46);
+}
+.hero-dots button.active {
+  width: 24px;
+  border-radius: 99px;
+  background: var(--yellow);
+}
 .pill {
   display: inline-flex;
   width: fit-content;
@@ -659,6 +703,9 @@ th, td { border: 1px solid var(--line); padding: 12px; text-align: left; }
   .hero-grid, .choice-list, .content-section, .popular, .page-shell, .education-strip, .community { margin-left: 14px; margin-right: 14px; }
   .hero-grid { padding: 16px 0; }
   .hero-card { min-height: 470px; }
+  .hero-arrow { width: 36px; height: 36px; font-size: 28px; }
+  .hero-arrow-left { left: 10px; }
+  .hero-arrow-right { right: 10px; }
   .article-grid, .event-grid, .level-grid, .admin-stats, .stats, footer { grid-template-columns: 1fr; }
   .news-grid { grid-template-columns: 1fr; gap: 18px; }
   .article-main { padding: 18px; }

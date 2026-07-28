@@ -626,23 +626,31 @@ function Header({ dark, setDark, menu, setMenu, query, setQuery }: any) {
 
 function HomePage(props: any) {
   const homeArticles = props.articles as Article[];
-  const featured = homeArticles[0] || articles[0];
+  const heroArticles = homeArticles.slice(0, 5).length ? homeArticles.slice(0, 5) : articles.slice(0, 5);
+  const [heroIndex, setHeroIndex] = useState(0);
+  const featured = heroArticles[heroIndex] || articles[0];
+  const moveHero = (direction: number) => {
+    setHeroIndex((current) => (current + direction + heroArticles.length) % heroArticles.length);
+  };
   return (
     <>
       <section className="hero-grid">
-        <article className="hero-card" onClick={() => navigate(`/berita/${featured.slug}`)}>
+        <article className="hero-card">
           <img src={featured.image} alt={featured.title} />
           <div>
             <span className="pill">{featured.category}</span>
             <h1>{featured.title}</h1>
             <p>{featured.subtitle}</p>
             <Meta article={featured} />
-            <button className="primary">Baca Selengkapnya</button>
+            <button className="primary" onClick={() => navigate(`/berita/${featured.slug}`)}>Baca Selengkapnya</button>
           </div>
+          <button className="hero-arrow hero-arrow-left" onClick={() => moveHero(-1)} aria-label="Berita sebelumnya">‹</button>
+          <button className="hero-arrow hero-arrow-right" onClick={() => moveHero(1)} aria-label="Berita berikutnya">›</button>
+          <div className="hero-dots" aria-label="Pilihan berita utama">{heroArticles.map((article, index) => <button key={article.slug} className={index === heroIndex ? "active" : ""} onClick={() => setHeroIndex(index)} aria-label={`Tampilkan ${article.title}`} />)}</div>
         </article>
         <aside className="choice-list">
           <h2>Berita Pilihan</h2>
-          {homeArticles.slice(1, 4).map((article) => <SmallArticle key={article.slug} article={article} />)}
+          {heroArticles.filter((article) => article.slug !== featured.slug).slice(0, 3).map((article) => <SmallArticle key={article.slug} article={article} onSelect={() => setHeroIndex(heroArticles.findIndex((item) => item.slug === article.slug))} />)}
         </aside>
       </section>
       <ArticleSection title="Berita Terbaru" articles={props.filtered.slice(0, 6)} {...props} />
@@ -992,8 +1000,8 @@ function ArticleCard({ article, bookmarks = [], toggleBookmark = () => null }: a
   return <article className="article-card"><img loading="lazy" src={article.image} alt={article.title} /><div><span className="pill">{article.category}</span><h3 onClick={() => navigate(`/berita/${article.slug}`)}>{article.title}</h3><p>{article.subtitle}</p><Meta article={article} /><button onClick={() => shareArticle(article)}>Share</button></div></article>;
 }
 
-function SmallArticle({ article }: { article: Article }) {
-  return <button className="small-article" onClick={() => navigate(`/berita/${article.slug}`)}><img src={article.image} alt={article.title} /><span><b>{article.title}</b><small>{article.category} - {article.read}</small></span></button>;
+function SmallArticle({ article, onSelect }: { article: Article; onSelect?: () => void }) {
+  return <button className="small-article" onClick={onSelect || (() => navigate(`/berita/${article.slug}`))}><img src={article.image} alt={article.title} /><span><b>{article.title}</b><small>{article.category} - {article.read}</small></span></button>;
 }
 
 function Meta({ article }: { article: Article }) {
