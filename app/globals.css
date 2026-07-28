@@ -312,55 +312,31 @@ footer span, footer button { display: block; text-align: left; padding-left: 0; 
   margin-top: 14px;
 }
 .footer-socials a {
-  position: relative;
   display: inline-grid;
-  min-width: 24px;
-  height: 24px;
+  width: 26px;
+  height: 26px;
   place-items: center;
   color: #fff;
-  font-size: 13px;
-  font-weight: 900;
-  letter-spacing: 0;
+  transition: transform .18s ease, opacity .18s ease;
 }
-.footer-socials a[aria-label="Instagram"] {
-  border: 2px solid #fff;
-  border-radius: 7px;
-  font-size: 0;
+.footer-socials a:hover {
+  opacity: .78;
+  transform: translateY(-1px);
 }
-.footer-socials a[aria-label="Instagram"]::before {
-  content: "";
-  width: 8px;
-  height: 8px;
-  border: 2px solid #fff;
-  border-radius: 50%;
+.footer-socials svg {
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
-.footer-socials a[aria-label="Instagram"]::after {
-  content: "";
-  position: absolute;
-  width: 3px;
-  height: 3px;
-  margin: -13px 0 0 13px;
-  border-radius: 50%;
-  background: #fff;
-}
-.footer-socials a[aria-label="TikTok"] {
-  font-size: 18px;
-}
-.footer-socials a[aria-label="TikTok"]::before {
-  content: "♪";
-  font-size: 22px;
-}
-.footer-socials a[aria-label="TikTok"] {
-  font-size: 0;
-}
-.footer-socials a[aria-label="X"] {
-  font-size: 22px;
-  font-family: Arial, sans-serif;
-}
-.footer-socials a[aria-label="WhatsApp"] {
-  border: 2px solid #fff;
-  border-radius: 50%;
-  font-size: 9px;
+.footer-socials a[aria-label="TikTok"] svg,
+.footer-socials a[aria-label="X"] svg,
+.footer-socials a[aria-label="WhatsApp"] svg {
+  fill: currentColor;
+  stroke: none;
 }
 .disclaimer { grid-column: 1 / -1; border-top: 1px solid rgba(255,255,255,.14); padding-top: 18px; }
 .page-shell { padding: 34px 0; }
