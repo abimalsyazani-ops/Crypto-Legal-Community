@@ -668,7 +668,7 @@ function NewsPage(props: any) {
         <input type="date" />
       </div>
       <CategoryFilters category={props.category} setCategory={props.setCategory} />
-      <div className="article-grid">
+      <div className="article-grid news-grid">
         {props.filtered.slice(0, visible).map((article: Article) => <ArticleCard key={article.slug} article={article} {...props} />)}
       </div>
       <button className="secondary center" onClick={() => setVisible(visible + 3)}>Muat Lebih Banyak</button>
