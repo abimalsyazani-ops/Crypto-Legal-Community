@@ -66,12 +66,14 @@ const categories = [
 const communityWhatsAppUrl =
   "https://chat.whatsapp.com/BQOBBC4E5z72r7iv0vzYik?s=cl&p=i&mlu=0&ilr=0&amv=1";
 const officialSocialLinks = {
+  email: "mailto:cryptolegalcommunity@gmail.com",
   whatsapp: communityWhatsAppUrl,
   x: "https://x.com/cryptolegaledu",
   instagram: "https://www.instagram.com/cryptolegalcommunity_",
   tiktok: "https://www.tiktok.com/@cryptolegalcommunity",
 };
 const footerSocials = [
+  { label: "Email", href: officialSocialLinks.email },
   { label: "Instagram", href: officialSocialLinks.instagram },
   { label: "TikTok", href: officialSocialLinks.tiktok },
   { label: "X", href: officialSocialLinks.x },
@@ -1039,10 +1041,11 @@ function CommunitySection() {
 }
 
 function Footer() {
-  return <footer><div><img src="/clc-brand-logo.png" alt="Logo CLC" /><p>Crypto Legal Community adalah media dan komunitas edukasi hukum, crypto, blockchain, Web3, investasi, dan ekonomi digital.</p></div><div><b>Navigasi</b><button onClick={() => navigate("/berita")}>Berita</button><button onClick={() => navigate("/edukasi")}>Edukasi</button><button onClick={() => navigate("/event")}>Event</button></div><div><b>Kontak</b><span>Email: cryptolegalcommunity@gmail.com</span><div className="footer-socials">{footerSocials.map((item) => <a key={item.label} href={item.href} target="_blank" rel="noreferrer" aria-label={item.label} title={item.label}><SocialIcon name={item.label} /></a>)}</div></div><p className="disclaimer">Informasi yang disajikan di Crypto Legal Community bertujuan untuk edukasi dan informasi, bukan merupakan nasihat hukum, keuangan, maupun rekomendasi investasi. Disclaimer - Kebijakan Privasi - Syarat dan Ketentuan</p></footer>;
+  return <footer><div><img src="/clc-brand-logo.png" alt="Logo CLC" /><p>Crypto Legal Community adalah media dan komunitas edukasi hukum, crypto, blockchain, Web3, investasi, dan ekonomi digital.</p></div><div><b>Navigasi</b><button onClick={() => navigate("/berita")}>Berita</button><button onClick={() => navigate("/edukasi")}>Edukasi</button><button onClick={() => navigate("/event")}>Event</button></div><div><b>Kontak</b><div className="footer-socials">{footerSocials.map((item) => <a key={item.label} href={item.href} target="_blank" rel="noreferrer" aria-label={item.label} title={item.label}><SocialIcon name={item.label} /></a>)}</div></div><p className="disclaimer">Informasi yang disajikan di Crypto Legal Community bertujuan untuk edukasi dan informasi, bukan merupakan nasihat hukum, keuangan, maupun rekomendasi investasi. Disclaimer - Kebijakan Privasi - Syarat dan Ketentuan</p></footer>;
 }
 
 function SocialIcon({ name }: { name: string }) {
+  if (name === "Email") return <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m4 7 8 6 8-6" /></svg>;
   if (name === "Instagram") return <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5" /><circle cx="12" cy="12" r="4" /><circle cx="17.5" cy="6.5" r="1.2" /></svg>;
   if (name === "TikTok") return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3v11.2a4.8 4.8 0 1 1-4.8-4.8c.4 0 .8.05 1.2.16v3.1a1.9 1.9 0 1 0 1.1 1.72V3h2.5c.45 2.2 1.78 3.85 4.2 4.55v3.05A7.7 7.7 0 0 1 14 8.95Z" /></svg>;
   if (name === "X") return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h4.35l4.28 5.58L17.4 4H20l-6.08 7.1L20.7 20h-4.35l-4.8-6.27L6.2 20H3.6l6.65-7.78Zm3.15 1.9 10.15 12.2h.95L8.1 5.9Z" /></svg>;
