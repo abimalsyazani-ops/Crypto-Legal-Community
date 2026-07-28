@@ -32,6 +32,8 @@ type Article = {
   editor?: boolean;
   image: string;
   tags: string[];
+  body?: string[];
+  sources?: string[];
 };
 
 type EventItem = {
@@ -63,6 +65,12 @@ const categories = [
 
 const communityWhatsAppUrl =
   "https://chat.whatsapp.com/BQOBBC4E5z72r7iv0vzYik?s=cl&p=i&mlu=0&ilr=0&amv=1";
+const officialSocialLinks = {
+  whatsapp: communityWhatsAppUrl,
+  x: "https://x.com/cryptolegaledu",
+  instagram: "https://www.instagram.com/cryptolegalcommunity_",
+  tiktok: "https://www.tiktok.com/@cryptolegalcommunity",
+};
 
 const articles: Article[] = [
   {
@@ -220,8 +228,11 @@ type SupabaseArticleRow = {
   view_count: number | null;
   published_at: string | null;
   updated_at: string | null;
+  content: { blocks?: Array<{ text?: string; type?: string }> } | null;
+  sources: Array<{ title?: string; url?: string } | string> | null;
   categories: { name: string } | null;
   authors: { name: string } | null;
+  article_tags?: Array<{ tags?: { name?: string } | null }>;
 };
 
 type SupabaseEventRow = {
@@ -294,13 +305,41 @@ function formatTime(value?: string | null) {
   }).format(new Date(value));
 }
 
+function fallbackArticleBody(article: Pick<Article, "category" | "subtitle">) {
+  return [
+    article.subtitle,
+    `Dalam konteks ${article.category.toLowerCase()}, pembaca perlu melihat isu ini secara utuh: bukan hanya dari sisi peluang teknologi, tetapi juga dari kepatuhan hukum, tata kelola platform, perlindungan konsumen, dan risiko finansial yang mungkin muncul.`,
+    "Crypto Legal Community menempatkan literasi sebagai fondasi utama. Setiap perkembangan aset digital perlu dipahami dengan bahasa yang sederhana agar masyarakat dapat mengambil keputusan secara lebih tenang, rasional, dan bertanggung jawab.",
+    "Bagi pelaku industri, perhatian terhadap regulasi, keamanan data, transparansi informasi, dan edukasi pengguna menjadi bagian penting untuk membangun ekosistem digital yang sehat. Bagi masyarakat, memahami risiko adalah langkah awal sebelum menggunakan layanan atau berinvestasi pada aset digital.",
+  ].filter(Boolean);
+}
+
+function articleBodyFromContent(row: SupabaseArticleRow) {
+  const blocks = Array.isArray(row.content?.blocks) ? row.content?.blocks : [];
+  return blocks.map((block) => block.text?.trim()).filter(Boolean) as string[];
+}
+
+function articleSources(row: SupabaseArticleRow) {
+  if (!Array.isArray(row.sources)) return ["OJK", "Bappebti", "Publikasi industri", "Riset internal CLC"];
+  return row.sources.map((source) => (typeof source === "string" ? source : source.title || source.url || "")).filter(Boolean);
+}
+
+function articleTags(row: SupabaseArticleRow) {
+  const tags = row.article_tags?.map((item) => item.tags?.name).filter(Boolean) as string[] | undefined;
+  return tags?.length ? tags : [];
+}
+
 function mapArticle(row: SupabaseArticleRow): Article {
+  const mapped = {
+    category: row.categories?.name || "Berita",
+    subtitle: row.subtitle || row.excerpt || "Artikel Crypto Legal Community.",
+  };
   return {
     id: row.id,
     slug: row.slug,
     title: row.title,
-    subtitle: row.subtitle || row.excerpt || "Artikel Crypto Legal Community.",
-    category: row.categories?.name || "Berita",
+    subtitle: mapped.subtitle,
+    category: mapped.category,
     author: row.authors?.name || "Redaksi CLC",
     date: formatDate(row.published_at),
     updated: formatDate(row.updated_at),
@@ -309,7 +348,9 @@ function mapArticle(row: SupabaseArticleRow): Article {
     image:
       row.cover_image_url ||
       "https://images.unsplash.com/photo-1642104704074-907c0698cbd9?auto=format&fit=crop&w=1000&q=80",
-    tags: [],
+    tags: articleTags(row),
+    body: articleBodyFromContent(row),
+    sources: articleSources(row),
   };
 }
 
@@ -412,7 +453,7 @@ export default function Home() {
       try {
         const [articleRows, eventRows] = await Promise.all([
           fetchFromSupabase<SupabaseArticleRow[]>(
-            "articles?select=id,title,slug,subtitle,excerpt,cover_image_url,cover_image_alt,reading_minutes,view_count,published_at,updated_at,categories(name),authors(name)&status=eq.published&order=published_at.desc",
+            "articles?select=id,title,slug,subtitle,excerpt,content,sources,cover_image_url,cover_image_alt,reading_minutes,view_count,published_at,updated_at,categories(name),authors(name),article_tags(tags(name))&status=eq.published&order=published_at.desc",
             { signal: controller.signal }
           ),
           fetchFromSupabase<SupabaseEventRow[]>(
@@ -631,11 +672,14 @@ function NewsPage(props: any) {
 }
 
 function ArticlePage({ article, related, bookmarked, toggleBookmark }: any) {
+  const body = article.body?.length ? article.body : fallbackArticleBody(article);
+  const sources = article.sources?.length ? article.sources : ["OJK", "Bappebti", "Publikasi industri", "Riset internal CLC"];
+  const tags = article.tags?.length ? article.tags : [article.category, "Crypto Legal Community"];
   return (
     <article className="article-layout">
       <aside className="toc">
         <b>Daftar Isi</b>
-        <a href="#ringkasan">Ringkasan</a><a href="#analisis">Analisis</a><a href="#referensi">Referensi</a>
+        <a href="#narasi">Narasi</a><a href="#analisis">Analisis</a><a href="#referensi">Referensi</a>
       </aside>
       <div className="article-main">
         <span className="pill">{article.category}</span>
@@ -643,9 +687,9 @@ function ArticlePage({ article, related, bookmarked, toggleBookmark }: any) {
         <p className="lead">{article.subtitle}</p>
         <div className="author-row"><div className="avatar">CLC</div><Meta article={article} /> <span>{article.views.toLocaleString("id-ID")} pembaca</span></div>
         <img className="cover" src={article.image} alt={article.title} />
-        <section id="ringkasan">
-          <h2>Ringkasan Utama</h2>
-          <p>Artikel ini membahas konteks terbaru dari {article.category.toLowerCase()} dengan bahasa yang mudah dipahami oleh pembaca Indonesia. Fokus CLC adalah membantu pembaca memahami peluang, risiko, dan konsekuensi hukum sebelum mengambil keputusan.</p>
+        <section id="narasi">
+          <h2>Narasi Lengkap</h2>
+          {body.map((paragraph: string, index: number) => <p key={`${article.slug}-body-${index}`}>{paragraph}</p>)}
           <blockquote>Literasi hukum dan literasi finansial harus berjalan bersama dalam ekosistem aset digital.</blockquote>
         </section>
         <section id="analisis">
@@ -655,8 +699,8 @@ function ArticlePage({ article, related, bookmarked, toggleBookmark }: any) {
         </section>
         <section id="referensi">
           <h2>Sumber dan Tag</h2>
-          <p>Referensi: OJK, Bappebti, publikasi industri, dan riset internal CLC. Tag: {article.tags.join(", ")}.</p>
-          <div className="share"><button onClick={() => navigator.clipboard.writeText(location.href)}>Salin Link</button><a href={`https://wa.me/?text=${encodeURIComponent(article.title)}`}>WhatsApp</a><a>Facebook</a><a>X</a><a>Telegram</a><a>LinkedIn</a><button onClick={() => toggleBookmark(article.slug)}>{bookmarked ? "Tersimpan" : "Simpan Artikel"}</button></div>
+          <p>Referensi: {sources.join(", ")}. Tag: {tags.join(", ")}.</p>
+          <div className="share"><button onClick={() => navigator.clipboard.writeText(location.href)}>Salin Link</button><a href={officialSocialLinks.whatsapp} target="_blank" rel="noreferrer">WhatsApp CLC</a><a href={officialSocialLinks.x} target="_blank" rel="noreferrer">X CLC</a><a href={officialSocialLinks.instagram} target="_blank" rel="noreferrer">Instagram CLC</a><a href={officialSocialLinks.tiktok} target="_blank" rel="noreferrer">TikTok CLC</a><button onClick={() => toggleBookmark(article.slug)}>{bookmarked ? "Tersimpan" : "Simpan Artikel"}</button></div>
         </section>
         <h2>Artikel Terkait</h2>
         <div className="article-grid compact">{related.map((item: Article) => <ArticleCard key={item.slug} article={item} bookmarks={[]} toggleBookmark={() => null} />)}</div>
@@ -984,7 +1028,7 @@ function EventCard({ event }: { event: EventItem }) {
 }
 
 function CommunitySection() {
-  return <section className="community"><h2>Bergabung dengan Komunitas Crypto Legal</h2><p>Dapatkan informasi terbaru, diskusi regulasi, edukasi crypto, webinar, dan kesempatan berkolaborasi bersama komunitas.</p><a href={communityWhatsAppUrl} target="_blank">Gabung WhatsApp</a><a href="https://instagram.com/">Ikuti Instagram</a></section>;
+  return <section className="community"><h2>Bergabung dengan Komunitas Crypto Legal</h2><p>Dapatkan informasi terbaru, diskusi regulasi, edukasi crypto, webinar, dan kesempatan berkolaborasi bersama komunitas.</p><a href={communityWhatsAppUrl} target="_blank">Gabung WhatsApp</a><a href={officialSocialLinks.instagram} target="_blank">Ikuti Instagram</a></section>;
 }
 
 function Footer() {
