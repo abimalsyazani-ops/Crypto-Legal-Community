@@ -711,7 +711,7 @@ function ArticlePage({ article, related, bookmarked, toggleBookmark }: any) {
         <section id="referensi">
           <h2>Sumber dan Tag</h2>
           <p>Referensi: {sources.join(", ")}. Tag: {tags.join(", ")}.</p>
-          <div className="share"><button onClick={() => navigator.clipboard.writeText(location.href)}>Salin Link</button><a href={officialSocialLinks.whatsapp} target="_blank" rel="noreferrer">WhatsApp CLC</a><a href={officialSocialLinks.x} target="_blank" rel="noreferrer">X CLC</a><a href={officialSocialLinks.instagram} target="_blank" rel="noreferrer">Instagram CLC</a><a href={officialSocialLinks.tiktok} target="_blank" rel="noreferrer">TikTok CLC</a><button onClick={() => toggleBookmark(article.slug)}>{bookmarked ? "Tersimpan" : "Simpan Artikel"}</button></div>
+          <div className="share"><button onClick={() => navigator.clipboard.writeText(location.href)}>Salin Link</button><a href={officialSocialLinks.whatsapp} target="_blank" rel="noreferrer">WhatsApp</a><a href={officialSocialLinks.x} target="_blank" rel="noreferrer">X</a><a href={officialSocialLinks.instagram} target="_blank" rel="noreferrer">Instagram</a><a href={officialSocialLinks.tiktok} target="_blank" rel="noreferrer">TikTok</a><button onClick={() => toggleBookmark(article.slug)}>{bookmarked ? "Tersimpan" : "Simpan Artikel"}</button></div>
         </section>
         <h2>Artikel Terkait</h2>
         <div className="article-grid compact">{related.map((item: Article) => <ArticleCard key={item.slug} article={item} bookmarks={[]} toggleBookmark={() => null} />)}</div>
