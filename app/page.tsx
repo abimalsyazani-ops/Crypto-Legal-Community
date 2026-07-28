@@ -71,6 +71,12 @@ const officialSocialLinks = {
   instagram: "https://www.instagram.com/cryptolegalcommunity_",
   tiktok: "https://www.tiktok.com/@cryptolegalcommunity",
 };
+const footerSocials = [
+  { label: "Instagram", href: officialSocialLinks.instagram, mark: "IG" },
+  { label: "TikTok", href: officialSocialLinks.tiktok, mark: "TT" },
+  { label: "X", href: officialSocialLinks.x, mark: "X" },
+  { label: "WhatsApp", href: officialSocialLinks.whatsapp, mark: "WA" },
+];
 
 const articles: Article[] = [
   {
@@ -1026,7 +1032,7 @@ function CommunitySection() {
 }
 
 function Footer() {
-  return <footer><div><img src="/clc-brand-logo.png" alt="Logo CLC" /><p>Crypto Legal Community adalah media dan komunitas edukasi hukum, crypto, blockchain, Web3, investasi, dan ekonomi digital.</p></div><div><b>Navigasi</b><button onClick={() => navigate("/berita")}>Berita</button><button onClick={() => navigate("/edukasi")}>Edukasi</button><button onClick={() => navigate("/event")}>Event</button></div><div><b>Kontak</b><span>Email: cryptolegalcommunity@gmail.com</span><span>TikTok: cryptolegalcommunity</span><span>Instagram: cryptolegalcommunity_</span><span>WhatsApp: 085720384852</span></div><p className="disclaimer">Informasi yang disajikan di Crypto Legal Community bertujuan untuk edukasi dan informasi, bukan merupakan nasihat hukum, keuangan, maupun rekomendasi investasi. Disclaimer - Kebijakan Privasi - Syarat dan Ketentuan</p></footer>;
+  return <footer><div><img src="/clc-brand-logo.png" alt="Logo CLC" /><p>Crypto Legal Community adalah media dan komunitas edukasi hukum, crypto, blockchain, Web3, investasi, dan ekonomi digital.</p></div><div><b>Navigasi</b><button onClick={() => navigate("/berita")}>Berita</button><button onClick={() => navigate("/edukasi")}>Edukasi</button><button onClick={() => navigate("/event")}>Event</button></div><div><b>Kontak</b><span>Email: cryptolegalcommunity@gmail.com</span><div className="footer-socials">{footerSocials.map((item) => <a key={item.label} href={item.href} target="_blank" rel="noreferrer" aria-label={item.label} title={item.label}>{item.mark}</a>)}</div></div><p className="disclaimer">Informasi yang disajikan di Crypto Legal Community bertujuan untuk edukasi dan informasi, bukan merupakan nasihat hukum, keuangan, maupun rekomendasi investasi. Disclaimer - Kebijakan Privasi - Syarat dan Ketentuan</p></footer>;
 }
 
 function ProgressBar() {
