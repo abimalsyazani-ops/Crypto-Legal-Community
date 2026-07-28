@@ -641,7 +641,7 @@ function HomePage(props: any) {
       <section className="hero-grid">
         <article className="hero-card">
           <img src={featured.image} alt={featured.title} />
-          <div>
+          <div className="hero-content">
             <span className="pill">{featured.category}</span>
             <h1>{featured.title}</h1>
             <p>{featured.subtitle}</p>
