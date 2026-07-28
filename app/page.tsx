@@ -658,7 +658,7 @@ function HomePage(props: any) {
         </aside>
       </section>
       <ArticleSection title="Berita Terbaru" articles={props.filtered.slice(0, 6)} {...props} />
-      <PopularSection />
+      <PopularSection articles={homeArticles} />
       <ArticleSection title="Fokus Regulasi dan Hukum" articles={homeArticles.filter((a) => ["Regulasi", "Hukum", "Pajak"].includes(a.category))} {...props} />
       <EducationStrip />
       <EventPreview events={props.events} />
@@ -1024,8 +1024,8 @@ function CategoryFilters({ category, setCategory }: any) {
   return <div className="chips">{categories.map((cat) => <button className={category === cat ? "active" : ""} key={cat} onClick={() => setCategory(cat)}>{cat}</button>)}</div>;
 }
 
-function PopularSection() {
-  return <section className="popular"><h2>Berita Populer</h2>{articles.slice().sort((a, b) => b.views - a.views).slice(0, 5).map((article, index) => <button key={article.slug} onClick={() => navigate(`/berita/${article.slug}`)}><b>{String(index + 1).padStart(2, "0")}</b><span>{article.title}<small>{article.views.toLocaleString("id-ID")} pembaca</small></span></button>)}</section>;
+function PopularSection({ articles: items = articles }: { articles?: Article[] }) {
+  return <section className="popular"><h2>Top Trending Articles</h2>{items.slice().sort((a, b) => b.views - a.views).slice(0, 5).map((article, index) => <button key={article.slug} onClick={() => navigate(`/berita/${article.slug}`)}><span className="popular-rank">{index + 1}</span><img src={article.image} alt={article.title} /><span><small>{article.category}</small>{article.title}</span></button>)}</section>;
 }
 
 function EducationStrip() {

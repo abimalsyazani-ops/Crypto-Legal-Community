@@ -354,23 +354,57 @@ p { color: var(--muted); line-height: 1.75; }
 .popular {
   padding: 24px;
   border-radius: 8px;
-  background: var(--navy);
+  background: #05070a;
   color: #fff;
 }
 .popular button {
+  position: relative;
   display: grid;
-  grid-template-columns: 62px 1fr;
+  grid-template-columns: 110px 1fr;
   gap: 14px;
   width: 100%;
-  padding: 15px 0;
+  padding: 10px 0;
   border: 0;
   border-bottom: 1px solid rgba(255,255,255,.14);
   text-align: left;
   background: transparent;
   color: #fff;
 }
-.popular b { color: var(--yellow); font-size: 26px; }
-.popular small { display: block; color: #b8c4d3; margin-top: 5px; }
+.popular button:last-child {
+  border-bottom: 0;
+}
+.popular img {
+  width: 110px;
+  height: 62px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+.popular-rank {
+  position: absolute;
+  left: 7px;
+  top: 17px;
+  display: inline-grid;
+  width: 22px;
+  height: 22px;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(6,17,31,.78);
+  color: var(--yellow);
+  font-size: 12px;
+  font-weight: 900;
+}
+.popular small {
+  display: block;
+  margin-bottom: 4px;
+  color: #7788a8;
+  font-size: 18px;
+}
+.popular button span:last-child {
+  color: #fff;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.35;
+}
 .education-strip, .community {
   padding: 32px;
   border-radius: 8px;
@@ -810,6 +844,10 @@ th, td { border: 1px solid var(--line); padding: 12px; text-align: left; }
   .hero-arrow-right { right: 10px; }
   .article-grid, .event-grid, .level-grid, .admin-stats, .stats, footer { grid-template-columns: 1fr; }
   .news-grid { grid-template-columns: 1fr; gap: 18px; }
+  .popular button { grid-template-columns: 94px 1fr; }
+  .popular img { width: 94px; height: 58px; }
+  .popular small { font-size: 15px; }
+  .popular button span:last-child { font-size: 15px; }
   .article-main { padding: 18px; }
   h1 { font-size: 34px; }
   .community a { width: 100%; margin: 8px 0 0; }
