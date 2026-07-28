@@ -64,7 +64,7 @@ img { max-width: 100%; display: block; }
   gap: 12px;
 }
 .brand img {
-  width: 185px;
+  width: 135px;
   height: auto;
   object-fit: contain;
   filter: drop-shadow(0 10px 20px rgba(0,0,0,.28));
@@ -302,7 +302,7 @@ footer {
   background: var(--navy);
   color: #fff;
 }
-footer img { width: 190px; }
+footer img { width: 145px; }
 footer p, footer span { color: #c6d1df; }
 footer span, footer button { display: block; text-align: left; padding-left: 0; }
 .disclaimer { grid-column: 1 / -1; border-top: 1px solid rgba(255,255,255,.14); padding-top: 18px; }
@@ -399,7 +399,7 @@ th, td { border: 1px solid var(--line); padding: 12px; text-align: left; }
   border-radius: 8px;
   background: var(--surface);
 }
-.admin-login img { width: 220px; margin-bottom: 14px; }
+.admin-login img { width: 155px; margin-bottom: 14px; }
 .admin-login input, .editor input, .editor textarea, .editor select { width: 100%; margin: 8px 0; }
 .password-field {
   display: grid;
@@ -449,7 +449,7 @@ th, td { border: 1px solid var(--line); padding: 12px; text-align: left; }
   background: var(--navy);
   color: #fff;
 }
-.admin aside img { width: 180px; margin-bottom: 22px; }
+.admin aside img { width: 140px; margin-bottom: 22px; }
 .admin aside button {
   display: block;
   width: 100%;
@@ -575,7 +575,7 @@ th, td { border: 1px solid var(--line); padding: 12px; text-align: left; }
 @media (max-width: 640px) {
   .site-header { padding: 12px 16px; }
   .brand { gap: 8px; }
-  .brand img { width: 145px; }
+  .brand img { width: 118px; }
   .brand span { display: none; }
   .hero-grid, .choice-list, .content-section, .popular, .page-shell, .education-strip, .community { margin-left: 14px; margin-right: 14px; }
   .hero-grid { padding: 16px 0; }
