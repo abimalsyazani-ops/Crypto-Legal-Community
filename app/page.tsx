@@ -581,6 +581,8 @@ export default function Home() {
         {path === "/edukasi" && <EducationPage />}
         {path === "/event" && <EventPage events={liveEvents} />}
         {path === "/tentang-clc" && <AboutPage />}
+        {path === "/help-center" && <HelpCenterPage />}
+        {path === "/privacy-policy" && <PrivacyPolicyPage />}
       </main>
       <Footer />
       <button className="back-top" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
@@ -729,6 +731,14 @@ function EventPage({ events: items = events }: { events?: EventItem[] }) {
 
 function AboutPage() {
   return <section className="page-shell about"><h1>Tentang CLC</h1><p>Crypto Legal Community (CLC) adalah media dan komunitas edukasi yang berfokus pada perkembangan aset kripto, Web3, teknologi blockchain, regulasi, serta ekonomi digital. CLC hadir untuk menyajikan informasi yang akurat, mudah dipahami, dan relevan bagi masyarakat, pelaku industri, investor, maupun generasi muda yang ingin memahami dunia kripto dari sisi teknologi, ekonomi, dan hukum.</p><h2>Visi</h2><p>Menjadi media dan platform edukasi crypto legal yang terpercaya, independen, dan berkontribusi dalam membangun ekosistem aset digital yang aman, transparan, serta bertanggung jawab di Indonesia.</p><h2>Misi</h2><ol><li>Menyajikan berita dan informasi terkini seputar kripto, blockchain, Web3, regulasi, dan ekonomi digital.</li><li>Meningkatkan literasi masyarakat melalui konten edukasi yang objektif, praktis, dan mudah dipahami.</li><li>Menjadi ruang diskusi dan kolaborasi bagi komunitas, akademisi, praktisi hukum, investor, serta pelaku industri aset digital.</li><li>Mendorong terciptanya ekosistem kripto yang lebih aman, patuh hukum, transparan, dan berkelanjutan.</li><li>Menghubungkan perkembangan teknologi dengan pemahaman hukum serta perlindungan bagi masyarakat dan investor.</li></ol><h2>Kontak</h2><p>Email: cryptolegalcommunity@gmail.com | WhatsApp: 085720384852</p></section>;
+}
+
+function HelpCenterPage() {
+  return <section className="page-shell about"><h1>Help Center</h1><p>Pusat bantuan Crypto Legal Community disiapkan untuk membantu pembaca, anggota komunitas, kontributor, dan mitra memahami penggunaan website serta kanal resmi CLC.</p><h2>Bantuan Pembaca</h2><p>Gunakan menu Berita untuk membaca artikel terbaru, Edukasi untuk materi pembelajaran, dan Event untuk melihat webinar atau kelas yang tersedia.</p><h2>Kontak Dukungan</h2><p>Untuk pertanyaan seputar artikel, kerja sama, koreksi konten, event, atau akses komunitas, hubungi CLC melalui email cryptolegalcommunity@gmail.com atau WhatsApp resmi komunitas.</p><h2>Keamanan</h2><p>CLC tidak pernah meminta seed phrase, private key, kode OTP, atau akses wallet pengguna. Abaikan pihak yang mengatasnamakan CLC untuk meminta data sensitif.</p></section>;
+}
+
+function PrivacyPolicyPage() {
+  return <section className="page-shell about"><h1>Privacy Policy</h1><p>Crypto Legal Community menghargai privasi pembaca dan anggota komunitas. Halaman ini menjelaskan bagaimana data dasar dapat digunakan untuk menjalankan website, publikasi, event, dan komunikasi komunitas.</p><h2>Data yang Dapat Dikumpulkan</h2><p>Data yang dapat diproses meliputi email, nama, data pendaftaran event, preferensi komunikasi, dan data teknis umum seperti kunjungan halaman atau perangkat yang digunakan.</p><h2>Penggunaan Data</h2><p>Data digunakan untuk mengelola konten, mengirim informasi komunitas, memproses pendaftaran event, meningkatkan pengalaman membaca, serta menjaga keamanan layanan.</p><h2>Keamanan dan Pihak Ketiga</h2><p>CLC tidak menjual data pribadi pengguna. Layanan pihak ketiga seperti hosting, analytics, Supabase, atau platform media sosial dapat memproses data sesuai kebijakan masing-masing layanan.</p><h2>Kontak Privasi</h2><p>Pertanyaan terkait privasi dapat dikirim ke cryptolegalcommunity@gmail.com.</p></section>;
 }
 
 function AdminPage({ admin, setAdmin, drafts, saveDraft, dataStatus, remoteArticles, remoteEvents, session, setSession, profile, setProfile, installPrompt, setInstallPrompt }: any) {
@@ -1041,7 +1051,7 @@ function CommunitySection() {
 }
 
 function Footer() {
-  return <footer><div><img src="/clc-brand-logo.png" alt="Logo CLC" /><p>Crypto Legal Community adalah media dan komunitas edukasi hukum, crypto, blockchain, Web3, investasi, dan ekonomi digital.</p></div><div><b>Navigasi</b><button onClick={() => navigate("/berita")}>Berita</button><button onClick={() => navigate("/edukasi")}>Edukasi</button><button onClick={() => navigate("/event")}>Event</button></div><div><b>Kontak</b><div className="footer-socials">{footerSocials.map((item) => <a key={item.label} href={item.href} target="_blank" rel="noreferrer" aria-label={item.label} title={item.label}><SocialIcon name={item.label} /></a>)}</div></div><p className="disclaimer">Informasi yang disajikan di Crypto Legal Community bertujuan untuk edukasi dan informasi, bukan merupakan nasihat hukum, keuangan, maupun rekomendasi investasi. Disclaimer - Kebijakan Privasi - Syarat dan Ketentuan</p></footer>;
+  return <footer><div><img src="/clc-brand-logo.png" alt="Logo CLC" /><p>Crypto Legal Community adalah media dan komunitas edukasi hukum, crypto, blockchain, Web3, investasi, dan ekonomi digital.</p></div><div><b>Navigasi</b><button onClick={() => navigate("/berita")}>Berita</button><button onClick={() => navigate("/edukasi")}>Edukasi</button><button onClick={() => navigate("/event")}>Event</button></div><div><b>Kontak</b><div className="footer-socials">{footerSocials.map((item) => <a key={item.label} href={item.href} target="_blank" rel="noreferrer" aria-label={item.label} title={item.label}><SocialIcon name={item.label} /></a>)}</div><div className="footer-legal"><button onClick={() => navigate("/tentang-clc")}>About</button><button onClick={() => navigate("/help-center")}>Help Center</button><button onClick={() => navigate("/privacy-policy")}>Privacy Policy</button></div></div><p className="disclaimer">Informasi yang disajikan di Crypto Legal Community bertujuan untuk edukasi dan informasi, bukan merupakan nasihat hukum, keuangan, maupun rekomendasi investasi.</p></footer>;
 }
 
 function SocialIcon({ name }: { name: string }) {
