@@ -679,7 +679,7 @@ function ArticlePage({ article, related, bookmarked, toggleBookmark }: any) {
     <article className="article-layout">
       <aside className="toc">
         <b>Daftar Isi</b>
-        <a href="#narasi">Narasi</a><a href="#analisis">Analisis</a><a href="#referensi">Referensi</a>
+        <a href="#narasi">Narasi</a><a href="#referensi">Referensi</a>
       </aside>
       <div className="article-main">
         <span className="pill">{article.category}</span>
@@ -691,11 +691,6 @@ function ArticlePage({ article, related, bookmarked, toggleBookmark }: any) {
           <h2>Narasi Lengkap</h2>
           {body.map((paragraph: string, index: number) => <p key={`${article.slug}-body-${index}`}>{paragraph}</p>)}
           <blockquote>Literasi hukum dan literasi finansial harus berjalan bersama dalam ekosistem aset digital.</blockquote>
-        </section>
-        <section id="analisis">
-          <h2>Poin yang Perlu Diperhatikan</h2>
-          <ul><li>Periksa legalitas platform dan pihak yang menawarkan produk.</li><li>Pahami risiko volatilitas, keamanan wallet, dan kewajiban pajak.</li><li>Simpan catatan transaksi untuk kebutuhan audit pribadi.</li></ul>
-          <table><tbody><tr><th>Aspek</th><th>Yang Dicek</th></tr><tr><td>Regulasi</td><td>Izin, kepatuhan, perlindungan konsumen</td></tr><tr><td>Investasi</td><td>Risiko, likuiditas, tujuan keuangan</td></tr></tbody></table>
         </section>
         <section id="referensi">
           <h2>Sumber dan Tag</h2>
