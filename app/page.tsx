@@ -688,7 +688,6 @@ function ArticlePage({ article, related, bookmarked, toggleBookmark }: any) {
         <div className="author-row"><div className="avatar">CLC</div><Meta article={article} /> <span>{article.views.toLocaleString("id-ID")} pembaca</span></div>
         <img className="cover" src={article.image} alt={article.title} />
         <section id="narasi">
-          <h2>Narasi Lengkap</h2>
           {body.map((paragraph: string, index: number) => <p key={`${article.slug}-body-${index}`}>{paragraph}</p>)}
           <blockquote>Literasi hukum dan literasi finansial harus berjalan bersama dalam ekosistem aset digital.</blockquote>
         </section>
