@@ -997,7 +997,7 @@ function ArticleSection({ title, articles: items, category, setCategory, bookmar
 }
 
 function ArticleCard({ article, bookmarks = [], toggleBookmark = () => null }: any) {
-  return <article className="article-card"><img loading="lazy" src={article.image} alt={article.title} /><div><span className="pill">{article.category}</span><h3 onClick={() => navigate(`/berita/${article.slug}`)}>{article.title}</h3><p>{article.subtitle}</p><Meta article={article} /><button onClick={() => shareArticle(article)}>Share</button></div></article>;
+  return <article className="article-card"><button className="article-media" onClick={() => navigate(`/berita/${article.slug}`)} aria-label={article.title}><img loading="lazy" src={article.image} alt={article.title} /></button><div><span className="pill">{article.category}</span><h3 onClick={() => navigate(`/berita/${article.slug}`)}>{article.title}</h3><p>{article.subtitle}</p><Meta article={article} /><button onClick={() => shareArticle(article)}>Share</button></div></article>;
 }
 
 function SmallArticle({ article, onSelect }: { article: Article; onSelect?: () => void }) {
