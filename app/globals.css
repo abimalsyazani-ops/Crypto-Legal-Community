@@ -289,7 +289,7 @@ p { color: var(--muted); line-height: 1.75; }
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
 }
-.article-card, .event-card, .level {
+.article-card, .event-card, .level, .video-card {
   overflow: hidden;
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -355,6 +355,44 @@ p { color: var(--muted); line-height: 1.75; }
   font-size: 13px;
 }
 .article-card > div > button { padding: 8px 10px; background: rgba(255,255,255,.08); color: #fff; border: 1px solid rgba(255,255,255,.16); }
+.education-videos {
+  margin-top: 34px;
+}
+.video-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+.video-frame {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  background: #020817;
+}
+.video-frame iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+.video-card > div:last-child {
+  padding: 16px;
+}
+.video-card h3 {
+  margin: 12px 0 8px;
+}
+.video-card p {
+  margin: 0 0 12px;
+}
+.video-card small {
+  display: block;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+.video-card a {
+  color: var(--yellow);
+  font-weight: 800;
+}
 .news-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 22px 18px;
@@ -848,7 +886,7 @@ th, td { border: 1px solid var(--line); padding: 12px; text-align: left; }
   .header-actions .search, .join { display: none; }
   .hero-grid, .article-layout, .event-columns, .admin { grid-template-columns: 1fr; }
   .toc { position: static; }
-  .article-grid, .event-grid, .level-grid, .admin-stats, .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .article-grid, .event-grid, .level-grid, .video-grid, .admin-stats, .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .news-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
   .news-grid .article-card { padding: 14px; border-radius: 12px; }
   .news-grid .article-card .pill { font-size: 16px; }
@@ -869,7 +907,7 @@ th, td { border: 1px solid var(--line); padding: 12px; text-align: left; }
   .hero-arrow { width: 36px; height: 36px; font-size: 28px; }
   .hero-arrow-left { left: 10px; }
   .hero-arrow-right { right: 10px; }
-  .article-grid, .event-grid, .level-grid, .admin-stats, .stats, footer { grid-template-columns: 1fr; }
+  .article-grid, .event-grid, .level-grid, .video-grid, .admin-stats, .stats, footer { grid-template-columns: 1fr; }
   .news-grid { grid-template-columns: 1fr; gap: 18px; }
   .popular button { grid-template-columns: 94px 1fr; }
   .popular img { width: 94px; height: 58px; }

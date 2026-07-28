@@ -49,6 +49,18 @@ type EventItem = {
   registrationUrl?: string;
 };
 
+type EducationVideo = {
+  id: number | string;
+  title: string;
+  summary: string;
+  level: "Pemula" | "Menengah" | "Lanjutan";
+  topic: string;
+  url: string;
+  embedUrl: string;
+  thumbnail: string;
+  publishedAt: string;
+};
+
 const categories = [
   "Semua",
   "Regulasi",
@@ -221,6 +233,42 @@ const events: EventItem[] = [
   },
 ];
 
+const educationVideos: EducationVideo[] = [
+  {
+    id: 1,
+    title: "Mengenal Crypto dari Sisi Hukum dan Risiko",
+    summary: "Pengantar singkat untuk memahami aset kripto, risiko, dan pentingnya literasi hukum sebelum berinvestasi.",
+    level: "Pemula",
+    topic: "Dasar Crypto",
+    url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+    embedUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+    thumbnail: "https://img.youtube.com/vi/dQw4w9WgXcQ/hqdefault.jpg",
+    publishedAt: "22 Juli 2026",
+  },
+  {
+    id: 2,
+    title: "Keamanan Wallet dan Pencegahan Scam Digital",
+    summary: "Praktik dasar menjaga seed phrase, memeriksa tautan, dan mengenali pola penipuan aset digital.",
+    level: "Pemula",
+    topic: "Keamanan Digital",
+    url: "https://www.youtube.com/watch?v=ysz5S6PUM-U",
+    embedUrl: "https://www.youtube.com/embed/ysz5S6PUM-U",
+    thumbnail: "https://img.youtube.com/vi/ysz5S6PUM-U/hqdefault.jpg",
+    publishedAt: "23 Juli 2026",
+  },
+  {
+    id: 3,
+    title: "Memahami Regulasi dan Pajak Aset Digital",
+    summary: "Ringkasan regulasi, pajak, dan perlindungan konsumen yang perlu diperhatikan pengguna crypto Indonesia.",
+    level: "Menengah",
+    topic: "Regulasi dan Pajak",
+    url: "https://www.youtube.com/watch?v=jNQXAC9IVRw",
+    embedUrl: "https://www.youtube.com/embed/jNQXAC9IVRw",
+    thumbnail: "https://img.youtube.com/vi/jNQXAC9IVRw/hqdefault.jpg",
+    publishedAt: "24 Juli 2026",
+  },
+];
+
 type SupabaseArticleRow = {
   id: string;
   title: string;
@@ -289,6 +337,10 @@ type AdminLessonRow = {
   title: string;
   level: string;
   status: string;
+  summary: string | null;
+  video_url: string | null;
+  external_url: string | null;
+  content: { topic?: string } | null;
   created_at: string;
 };
 
@@ -374,6 +426,44 @@ function mapEvent(row: SupabaseEventRow): EventItem {
   };
 }
 
+function getYouTubeId(url: string) {
+  const trimmed = url.trim();
+  if (!trimmed) return "";
+  const patterns = [
+    /youtu\.be\/([a-zA-Z0-9_-]{6,})/,
+    /youtube\.com\/watch\?v=([a-zA-Z0-9_-]{6,})/,
+    /youtube\.com\/embed\/([a-zA-Z0-9_-]{6,})/,
+    /youtube\.com\/shorts\/([a-zA-Z0-9_-]{6,})/,
+  ];
+  for (const pattern of patterns) {
+    const match = trimmed.match(pattern);
+    if (match?.[1]) return match[1];
+  }
+  try {
+    const parsed = new URL(trimmed);
+    return parsed.searchParams.get("v") || "";
+  } catch {
+    return "";
+  }
+}
+
+function makeEducationVideo(row: AdminLessonRow): EducationVideo | null {
+  const url = row.video_url || row.external_url || "";
+  const videoId = getYouTubeId(url);
+  if (!videoId) return null;
+  return {
+    id: row.id,
+    title: row.title,
+    summary: row.summary || "Video edukasi Crypto Legal Community.",
+    level: ["Pemula", "Menengah", "Lanjutan"].includes(row.level) ? (row.level as EducationVideo["level"]) : "Pemula",
+    topic: row.content?.topic || "Edukasi Crypto",
+    url,
+    embedUrl: `https://www.youtube.com/embed/${videoId}`,
+    thumbnail: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
+    publishedAt: formatDate(row.created_at),
+  };
+}
+
 function navigate(path: string) {
   window.history.pushState({}, "", path);
   window.dispatchEvent(new PopStateEvent("popstate"));
@@ -406,6 +496,7 @@ export default function Home() {
   const [drafts, setDrafts] = useState<Article[]>([]);
   const [remoteArticles, setRemoteArticles] = useState<Article[]>([]);
   const [remoteEvents, setRemoteEvents] = useState<EventItem[]>([]);
+  const [remoteLessons, setRemoteLessons] = useState<EducationVideo[]>([]);
   const [dataStatus, setDataStatus] = useState(
     supabaseConfig.isConfigured ? "Menghubungkan Supabase..." : "Mode demo: env Supabase belum diisi."
   );
@@ -456,7 +547,7 @@ export default function Home() {
     const controller = new AbortController();
     const loadRemoteContent = async () => {
       try {
-        const [articleRows, eventRows] = await Promise.all([
+        const [articleRows, eventRows, lessonRows] = await Promise.all([
           fetchFromSupabase<SupabaseArticleRow[]>(
             "articles?select=id,title,slug,subtitle,excerpt,content,sources,cover_image_url,cover_image_alt,reading_minutes,view_count,published_at,updated_at,categories(name),authors(name),article_tags(tags(name))&status=eq.published&order=published_at.desc",
             { signal: controller.signal }
@@ -465,12 +556,17 @@ export default function Home() {
             "events?select=id,title,slug,description,poster_url,speaker,starts_at,location,registration_url,status,ticket_price,quota&status=in.(upcoming,open,closed,completed)&order=starts_at.asc",
             { signal: controller.signal }
           ),
+          fetchFromSupabase<AdminLessonRow[]>(
+            "lessons?select=id,title,level,status,summary,video_url,external_url,content,created_at&status=eq.published&order=created_at.desc",
+            { signal: controller.signal }
+          ),
         ]);
 
         setRemoteArticles(articleRows.map(mapArticle));
         setRemoteEvents(eventRows.map(mapEvent));
+        setRemoteLessons(lessonRows.map(makeEducationVideo).filter(Boolean) as EducationVideo[]);
         setDataStatus(
-          articleRows.length || eventRows.length
+          articleRows.length || eventRows.length || lessonRows.length
             ? "Terhubung ke Supabase."
             : "Terhubung ke Supabase, tetapi belum ada konten published."
         );
@@ -498,6 +594,7 @@ export default function Home() {
 
   const liveArticles = remoteArticles.length ? remoteArticles : articles;
   const liveEvents = remoteEvents.length ? remoteEvents : events;
+  const liveLessons = supabaseConfig.isConfigured ? remoteLessons : educationVideos;
   const allArticles = [...drafts, ...liveArticles];
   const filtered = allArticles.filter((article) => {
     const matchCategory = category === "Semua" || article.category === category;
@@ -531,6 +628,7 @@ export default function Home() {
     toggleBookmark,
     articles: liveArticles,
     events: liveEvents,
+    lessons: liveLessons,
   };
 
   if (path === "/admin") {
@@ -575,7 +673,7 @@ export default function Home() {
             toggleBookmark={toggleBookmark}
           />
         )}
-        {path === "/edukasi" && <EducationPage />}
+        {path === "/edukasi" && <EducationPage videos={liveLessons} />}
         {path === "/event" && <EventPage events={liveEvents} />}
         {path === "/tentang-clc" && <AboutPage />}
         {path === "/help-center" && <HelpCenterPage />}
@@ -717,9 +815,12 @@ function ArticlePage({ article, related, bookmarked, toggleBookmark }: any) {
   );
 }
 
-function EducationPage() {
+function EducationPage({ videos = educationVideos }: { videos?: EducationVideo[] }) {
+  const [selectedTopic, setSelectedTopic] = useState("Semua");
+  const topics = ["Semua", ...Array.from(new Set(videos.map((video) => video.topic)))];
+  const visibleVideos = selectedTopic === "Semua" ? videos : videos.filter((video) => video.topic === selectedTopic);
   const steps = ["Mengenal cryptocurrency", "Mengenal blockchain", "Membuat dan mengamankan wallet", "Memahami exchange", "Mengenal risiko investasi", "Memahami regulasi", "Memahami pajak crypto", "Analisis fundamental", "Analisis teknikal", "Keamanan dan pencegahan penipuan"];
-  return <section className="page-shell"><h1>Jalur Edukasi Crypto</h1><p>Materi dipisahkan untuk Pemula, Menengah, dan Lanjutan agar pembaca bisa belajar bertahap.</p><div className="level-grid">{["Pemula", "Menengah", "Lanjutan"].map((level, i) => <div className="level" key={level}><h2>{level}</h2><div className="progress"><span style={{ width: `${(i + 1) * 28}%` }} /></div>{steps.slice(i * 3, i * 3 + 4).map((step, idx) => <button key={step}>{idx + 1}. {step}</button>)}</div>)}</div><EducationStrip /></section>;
+  return <section className="page-shell"><h1>Jalur Edukasi Crypto</h1><p>Materi dipisahkan untuk Pemula, Menengah, dan Lanjutan agar pembaca bisa belajar bertahap.</p><div className="level-grid">{["Pemula", "Menengah", "Lanjutan"].map((level, i) => <div className="level" key={level}><h2>{level}</h2><div className="progress"><span style={{ width: `${(i + 1) * 28}%` }} /></div>{steps.slice(i * 3, i * 3 + 4).map((step, idx) => <button key={step}>{idx + 1}. {step}</button>)}</div>)}</div><section className="education-videos"><div className="section-head"><div><h2>Video Edukasi Terbaru</h2><p>Pilih topik untuk menonton materi edukasi CLC yang paling relevan.</p></div></div><div className="chips">{topics.map((topic) => <button className={selectedTopic === topic ? "active" : ""} key={topic} onClick={() => setSelectedTopic(topic)}>{topic}</button>)}</div><div className="video-grid">{visibleVideos.map((video) => <EducationVideoCard key={video.id} video={video} />)}</div>{!visibleVideos.length && <p>Belum ada video edukasi untuk topik ini.</p>}</section><EducationStrip /></section>;
 }
 
 function EventPage({ events: items = events }: { events?: EventItem[] }) {
@@ -763,6 +864,7 @@ function AdminPage({ admin, setAdmin, drafts, saveDraft, dataStatus, remoteArtic
   const [eventLink, setEventLink] = useState("");
   const [lessonTitle, setLessonTitle] = useState("");
   const [lessonLevel, setLessonLevel] = useState("Pemula");
+  const [lessonTopic, setLessonTopic] = useState("Dasar Crypto");
   const [lessonSummary, setLessonSummary] = useState("");
   const [lessonUrl, setLessonUrl] = useState("");
   const isStaff = profile && ["admin", "editor", "author"].includes(profile.role);
@@ -807,7 +909,7 @@ function AdminPage({ admin, setAdmin, drafts, saveDraft, dataStatus, remoteArtic
       fetchFromSupabaseAsUser<SupabaseCategoryRow[]>("categories?select=id,name,slug&order=sort_order.asc", session),
       fetchFromSupabaseAsUser<AdminArticleRow[]>("articles?select=id,title,slug,subtitle,excerpt,status,cover_image_url,reading_minutes,view_count,published_at,created_at,categories(name)&order=created_at.desc", session),
       fetchFromSupabaseAsUser<AdminEventRow[]>("events?select=id,title,status,starts_at,location&order=starts_at.desc", session),
-      fetchFromSupabaseAsUser<AdminLessonRow[]>("lessons?select=id,title,level,status,created_at&order=created_at.desc", session),
+      fetchFromSupabaseAsUser<AdminLessonRow[]>("lessons?select=id,title,level,status,summary,video_url,external_url,content,created_at&order=created_at.desc", session),
     ]);
     setDbCategories(categoryRows);
     setSelectedCategory((current) => current || categoryRows[0]?.id || "");
@@ -909,19 +1011,30 @@ function AdminPage({ admin, setAdmin, drafts, saveDraft, dataStatus, remoteArtic
 
   const saveLesson = async () => {
     if (!session) return;
+    if (!lessonTitle.trim() || !lessonTopic.trim()) {
+      setSaveStatus("Judul dan topik video wajib diisi.");
+      return;
+    }
+    if (!getYouTubeId(lessonUrl)) {
+      setSaveStatus("Masukkan link YouTube yang valid.");
+      return;
+    }
     await writeToSupabase<any[]>("lessons", "POST", session, {
       title: lessonTitle,
       slug: `${lessonTitle.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${Date.now()}`,
       level: lessonLevel,
       summary: lessonSummary,
-      external_url: lessonUrl || null,
-      content: { type: "doc", blocks: [{ type: "paragraph", text: lessonSummary }] },
+      video_url: lessonUrl,
+      external_url: lessonUrl,
+      content: { type: "video", topic: lessonTopic, blocks: [{ type: "paragraph", text: lessonSummary }] },
       status: "published",
       published_at: new Date().toISOString(),
     });
     setLessonTitle("");
+    setLessonTopic("Dasar Crypto");
     setLessonSummary("");
     setLessonUrl("");
+    setSaveStatus("Video edukasi berhasil dipublikasikan.");
     await loadAdminData();
   };
 
@@ -991,7 +1104,7 @@ function AdminPage({ admin, setAdmin, drafts, saveDraft, dataStatus, remoteArtic
 
         {tab === "Event" && <div className="admin-panel"><h2>Manajemen Event</h2><input value={eventTitle} onChange={(e) => setEventTitle(e.target.value)} placeholder="Nama event" /><input value={eventStartsAt} onChange={(e) => setEventStartsAt(e.target.value)} type="datetime-local" /><input value={eventLocation} onChange={(e) => setEventLocation(e.target.value)} placeholder="Lokasi atau platform" /><input value={eventLink} onChange={(e) => setEventLink(e.target.value)} placeholder="Link pendaftaran" /><button className="primary" onClick={saveEvent}>Simpan Event</button><div className="admin-list">{adminEvents.map((event) => <div key={event.id} className="admin-row"><span><b>{event.title}</b><small>{event.status} - {formatDate(event.starts_at)} - {event.location || "Online"}</small></span><button onClick={() => deleteEvent(event.id)}>Hapus</button></div>)}</div></div>}
 
-        {tab === "Course" && <div className="admin-panel"><h2>Manajemen Course dan Edukasi</h2><input value={lessonTitle} onChange={(e) => setLessonTitle(e.target.value)} placeholder="Judul materi" /><select value={lessonLevel} onChange={(e) => setLessonLevel(e.target.value)}><option>Pemula</option><option>Menengah</option><option>Lanjutan</option></select><input value={lessonUrl} onChange={(e) => setLessonUrl(e.target.value)} placeholder="Link video atau referensi eksternal" /><textarea value={lessonSummary} onChange={(e) => setLessonSummary(e.target.value)} placeholder="Deskripsi materi edukasi" /><button className="primary" onClick={saveLesson}>Simpan Materi</button><div className="admin-list">{adminLessons.map((lesson) => <div key={lesson.id} className="admin-row"><span><b>{lesson.title}</b><small>{lesson.level} - {lesson.status}</small></span><button onClick={() => deleteLesson(lesson.id)}>Hapus</button></div>)}</div></div>}
+        {tab === "Course" && <div className="admin-panel"><h2>Manajemen Video Edukasi</h2><input value={lessonTitle} onChange={(e) => setLessonTitle(e.target.value)} placeholder="Judul video edukasi" /><select value={lessonLevel} onChange={(e) => setLessonLevel(e.target.value)}><option>Pemula</option><option>Menengah</option><option>Lanjutan</option></select><select value={lessonTopic} onChange={(e) => setLessonTopic(e.target.value)}><option>Dasar Crypto</option><option>Blockchain</option><option>Web3</option><option>Regulasi dan Pajak</option><option>Investasi</option><option>Keamanan Digital</option><option>Analisis</option></select><input value={lessonTopic} onChange={(e) => setLessonTopic(e.target.value)} placeholder="Topik video, contoh: Keamanan Digital" /><input value={lessonUrl} onChange={(e) => setLessonUrl(e.target.value)} placeholder="Link YouTube, contoh: https://www.youtube.com/watch?v=..." /><textarea value={lessonSummary} onChange={(e) => setLessonSummary(e.target.value)} placeholder="Deskripsi singkat video edukasi" /><button className="primary" onClick={saveLesson}>Publikasikan Video</button><p className="admin-status">{saveStatus || "Video published otomatis tampil di halaman Edukasi berdasarkan topik."}</p><div className="admin-list">{adminLessons.map((lesson) => <div key={lesson.id} className="admin-row"><span><b>{lesson.title}</b><small>{lesson.content?.topic || "Edukasi Crypto"} - {lesson.level} - {lesson.status}</small></span><button onClick={() => deleteLesson(lesson.id)}>Hapus</button></div>)}</div></div>}
 
         {tab === "Kategori" && <div className="admin-panel"><h2>Kategori</h2><div className="chips">{dbCategories.map((cat) => <button key={cat.id}>{cat.name}</button>)}</div></div>}
         {tab === "Penulis" && <div className="admin-panel"><h2>Penulis</h2><p>Data penulis sudah tersedia di schema Supabase. Form detail penulis bisa ditambahkan setelah workflow artikel stabil.</p></div>}
@@ -1007,6 +1120,10 @@ function ArticleSection({ title, articles: items, category, setCategory, bookmar
 
 function ArticleCard({ article, bookmarks = [], toggleBookmark = () => null }: any) {
   return <article className="article-card"><button className="article-media" onClick={() => navigate(`/berita/${article.slug}`)} aria-label={article.title}><img loading="lazy" src={article.image} alt={article.title} /></button><div><span className="pill">{article.category}</span><h3 onClick={() => navigate(`/berita/${article.slug}`)}>{article.title}</h3><p>{article.subtitle}</p><Meta article={article} /><button onClick={() => shareArticle(article)}>Share</button></div></article>;
+}
+
+function EducationVideoCard({ video }: { video: EducationVideo }) {
+  return <article className="video-card"><div className="video-frame"><iframe src={video.embedUrl} title={video.title} loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen /></div><div><span className="pill">{video.topic}</span><h3>{video.title}</h3><p>{video.summary}</p><small>{video.level} - {video.publishedAt}</small><a href={video.url} target="_blank" rel="noreferrer">Buka di YouTube</a></div></article>;
 }
 
 function SmallArticle({ article, onSelect }: { article: Article; onSelect?: () => void }) {
