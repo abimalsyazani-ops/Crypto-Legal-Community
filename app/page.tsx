@@ -196,7 +196,6 @@ const events: EventItem[] = [
     price: "Gratis",
     quota: "300 peserta",
     speaker: "Praktisi hukum aset digital",
-    registrationUrl: "https://wa.me/6280000000000",
   },
   {
     id: 2,
@@ -208,7 +207,6 @@ const events: EventItem[] = [
     price: "Rp49.000",
     quota: "100 peserta",
     speaker: "Tim Edukasi CLC",
-    registrationUrl: "https://wa.me/6280000000000",
   },
   {
     id: 3,
@@ -220,7 +218,6 @@ const events: EventItem[] = [
     price: "Gratis",
     quota: "250 peserta",
     speaker: "Konsultan pajak digital",
-    registrationUrl: "https://wa.me/6280000000000",
   },
 ];
 
@@ -621,7 +618,7 @@ function Header({ dark, setDark, menu, setMenu, query, setQuery }: any) {
         <button className="icon-btn" onClick={() => setDark(!dark)} aria-label="Ganti mode">
           {dark ? "Light" : "Dark"}
         </button>
-        <a className="join" href={communityWhatsAppUrl} target="_blank">Gabung Komunitas</a>
+        <a className="join" href={communityWhatsAppUrl} target="_blank" rel="noreferrer">Gabung Komunitas</a>
         <button className="hamburger" onClick={() => setMenu(!menu)} aria-label="Menu">Menu</button>
       </div>
     </header>
@@ -1041,13 +1038,12 @@ function EventList({ title, items }: any) {
 }
 
 function EventCard({ event }: { event: EventItem }) {
-  const registrationUrl = event.registrationUrl || "#";
-  return <article className="event-card"><div className="poster">{event.date.split(" ")[0]}<span>{event.status}</span></div><h3>{event.title}</h3><p>{event.speaker}</p><small>{event.date} - {event.time} - {event.place}</small><small>{event.price} - {event.quota}</small><a href={registrationUrl} target="_blank" aria-disabled={!event.registrationUrl}>{event.registrationUrl ? "Daftar" : "Belum Dibuka"}</a></article>;
-  return <article className="event-card"><div className="poster">{event.date.split(" ")[0]}<span>{event.status}</span></div><h3>{event.title}</h3><p>{event.speaker}</p><small>{event.date} - {event.time} - {event.place}</small><small>{event.price} - {event.quota}</small><a href="https://wa.me/6280000000000" target="_blank">Daftar</a></article>;
+  const canRegister = event.status === "Dibuka" && Boolean(event.registrationUrl);
+  return <article className="event-card"><div className="poster">{event.date.split(" ")[0]}<span>{event.status}</span></div><h3>{event.title}</h3><p>{event.speaker}</p><small>{event.date} - {event.time} - {event.place}</small><small>{event.price} - {event.quota}</small>{canRegister ? <a className="event-action" href={event.registrationUrl} target="_blank" rel="noreferrer">Daftar</a> : <span className="event-action disabled">{event.status === "Selesai" ? "Selesai" : "Belum Dibuka"}</span>}</article>;
 }
 
 function CommunitySection() {
-  return <section className="community"><h2>Bergabung dengan Komunitas Crypto Legal</h2><p>Dapatkan informasi terbaru, diskusi regulasi, edukasi crypto, webinar, dan kesempatan berkolaborasi bersama komunitas.</p><a href={communityWhatsAppUrl} target="_blank">Gabung WhatsApp</a><a href={officialSocialLinks.instagram} target="_blank">Ikuti Instagram</a></section>;
+  return <section className="community"><h2>Bergabung dengan Komunitas Crypto Legal</h2><p>Dapatkan informasi terbaru, diskusi regulasi, edukasi crypto, webinar, dan kesempatan berkolaborasi bersama komunitas.</p><a href={communityWhatsAppUrl} target="_blank" rel="noreferrer">Gabung WhatsApp</a><a href={officialSocialLinks.instagram} target="_blank" rel="noreferrer">Ikuti Instagram</a></section>;
 }
 
 function Footer() {

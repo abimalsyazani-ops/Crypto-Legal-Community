@@ -113,7 +113,7 @@ nav button:hover { background: rgba(255,255,255,.09); }
   font-size: 12px;
   font-weight: 800;
 }
-.join, .primary, .secondary, .community a, .event-card a, .editor-actions button, .article-card > div > button, .share button, .share a {
+.join, .primary, .secondary, .community a, .event-action, .editor-actions button, .article-card > div > button, .share button, .share a {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -453,7 +453,12 @@ p { color: var(--muted); line-height: 1.75; }
 }
 .poster span { font-size: 13px; background: #fff; padding: 7px 10px; border-radius: 8px; }
 .event-card small { display: block; margin: 8px 0; color: var(--muted); }
-.event-card a { margin-top: 10px; }
+.event-action { margin-top: 10px; }
+.event-action.disabled {
+  cursor: default;
+  background: var(--surface-2);
+  color: var(--muted);
+}
 .community a { margin-right: 10px; }
 footer {
   display: grid;
@@ -857,7 +862,10 @@ th, td { border: 1px solid var(--line); padding: 12px; text-align: left; }
   .brand span { display: none; }
   .hero-grid, .choice-list, .content-section, .popular, .page-shell, .education-strip, .community { margin-left: 14px; margin-right: 14px; }
   .hero-grid { padding: 16px 0; }
-  .hero-card { min-height: 470px; }
+  .hero-card { min-height: 540px; }
+  .hero-content { padding: 22px 22px 58px; }
+  .hero-content h1 { font-size: 31px; line-height: 1.08; }
+  .hero-content p { line-height: 1.55; }
   .hero-arrow { width: 36px; height: 36px; font-size: 28px; }
   .hero-arrow-left { left: 10px; }
   .hero-arrow-right { right: 10px; }
