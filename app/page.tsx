@@ -629,7 +629,6 @@ function HomePage(props: any) {
   const featured = homeArticles[0] || articles[0];
   return (
     <>
-      <section className="ticker"><b>Breaking:</b> CLC membuka kelas literasi aset digital dan perlindungan konsumen bulan Agustus.</section>
       <section className="hero-grid">
         <article className="hero-card" onClick={() => navigate(`/berita/${featured.slug}`)}>
           <img src={featured.image} alt={featured.title} />

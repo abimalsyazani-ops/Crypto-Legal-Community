@@ -127,12 +127,6 @@ nav button:hover { background: rgba(255,255,255,.09); }
 .hamburger { display: none; }
 
 main { min-height: 70vh; }
-.ticker {
-  padding: 11px clamp(18px, 4vw, 56px);
-  background: var(--yellow);
-  color: #111827;
-  font-size: 14px;
-}
 .hero-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.65fr) minmax(280px, .8fr);
