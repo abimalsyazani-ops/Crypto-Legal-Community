@@ -463,6 +463,71 @@ footer span, footer button { display: block; text-align: left; padding-left: 0; 
 }
 .disclaimer { grid-column: 1 / -1; border-top: 1px solid rgba(255,255,255,.14); padding-top: 18px; }
 .page-shell { padding: 34px 0; }
+.help-page {
+  min-height: 70vh;
+  margin: 0;
+  padding: 44px clamp(18px, 4vw, 56px) 60px;
+  background: #020304;
+  color: #fff;
+}
+.help-page h1 {
+  font-size: clamp(34px, 4vw, 52px);
+}
+.help-page h1 span,
+.help-page a {
+  color: var(--yellow);
+}
+.help-address {
+  color: #fff;
+  line-height: 1.55;
+}
+.help-intro {
+  max-width: 1040px;
+  color: #fff;
+  font-size: 18px;
+}
+.help-form {
+  display: grid;
+  gap: 24px;
+  max-width: 1100px;
+  margin-top: 22px;
+}
+.help-form label {
+  display: grid;
+  gap: 12px;
+  color: #fff;
+  font-weight: 800;
+}
+.help-form input,
+.help-form textarea {
+  width: 100%;
+  min-height: 62px;
+  border: 1px solid rgba(255,255,255,.85);
+  border-radius: 8px;
+  padding: 16px 20px;
+  color: #fff;
+  background: #020304;
+  outline: none;
+}
+.help-form textarea {
+  min-height: 150px;
+  resize: vertical;
+}
+.help-form input::placeholder,
+.help-form textarea::placeholder {
+  color: #9fb0c5;
+}
+.help-form input:focus,
+.help-form textarea:focus {
+  border-color: var(--yellow);
+}
+.help-form button {
+  width: fit-content;
+}
+.help-note {
+  margin-top: 22px;
+  color: #c6d1df;
+}
 .toolbar {
   padding: 14px;
   border: 1px solid var(--line);
