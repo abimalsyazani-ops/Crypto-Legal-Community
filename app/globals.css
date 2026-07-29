@@ -793,6 +793,9 @@ th, td { border: 1px solid var(--line); padding: 12px; text-align: left; }
   flex-wrap: wrap;
   margin: 4px 0 18px;
 }
+.admin-visit-site {
+  text-decoration: none;
+}
 .admin-status {
   display: inline-flex;
   margin: 0;

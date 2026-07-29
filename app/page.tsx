@@ -1095,6 +1095,7 @@ function AdminPage({ admin, setAdmin, drafts, saveDraft, dataStatus, remoteArtic
         <h1>Dashboard Admin</h1>
         <div className="admin-toolbar">
           <p className="admin-status">{dataStatus} {profile ? `Login sebagai ${profile.display_name} (${profile.role}).` : ""}</p>
+          <a className="secondary admin-visit-site" href="/" target="_blank" rel="noreferrer">Lihat Website</a>
           <button className="secondary" onClick={installDashboard}>Install Dashboard</button>
         </div>
         {installStatus && <p className="admin-install-note">{installStatus}</p>}
