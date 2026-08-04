@@ -1,7 +1,7 @@
 @import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap");
 
 :root {
-  --bg: #f5f7fb;
+  --bg: #070b12;
   --surface: #ffffff;
   --surface-2: #eef4f8;
   --text: #101828;
@@ -30,8 +30,8 @@ html { scroll-behavior: smooth; }
 body {
   margin: 0;
   background:
-    radial-gradient(circle at top left, rgba(20,99,216,.08), transparent 34rem),
-    linear-gradient(180deg, #f9fbff 0%, var(--bg) 32rem);
+    radial-gradient(circle at top left, rgba(20,99,216,.16), transparent 34rem),
+    linear-gradient(180deg, #02040a 0%, var(--bg) 32rem);
   color: var(--text);
   font-family: "Plus Jakarta Sans", Inter, system-ui, sans-serif;
 }
@@ -286,6 +286,27 @@ p { color: var(--muted); line-height: 1.75; }
   margin-bottom: 8px;
   padding-bottom: 10px;
   border-bottom: 1px solid var(--line);
+}
+.content-section > .section-head h2,
+.page-shell > h1 {
+  color: #fff;
+}
+.content-section > .section-head {
+  border-bottom-color: rgba(255,255,255,.14);
+}
+.page-shell > p {
+  color: #c6d1df;
+}
+.page-shell > h2,
+.page-shell .event-columns h2,
+.education-videos .section-head h2,
+.about h2 {
+  color: #fff;
+}
+.education-videos .section-head p,
+.about p,
+.about li {
+  color: #c6d1df;
 }
 .section-head button, .secondary {
   background: var(--surface-2);
